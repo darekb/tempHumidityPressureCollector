@@ -16,11 +16,8 @@ set(CMAKE_BUILD_TYPE Release)
 SET(SOURCE_EXE
 
         main.c
-        slAdc.c
         slI2C.c
-        slLCDI2C.c
-        slMCP3421.c
-#        slUart.c
+        slUart.c
 )
 
 SET(SOURCE_LIB
