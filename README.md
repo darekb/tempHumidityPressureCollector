@@ -21,6 +21,7 @@ Get data from BME280, convert to redable data and send via RF module to laptop w
 
 ## Status
 done
+## Next step: convert code to pure C
 
 
 
