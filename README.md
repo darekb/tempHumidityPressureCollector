@@ -7,7 +7,7 @@ Get data from BME280, convert to redable data and send via RF module to laptop w
 * BME280 Temperature Humidity Pressure Sensor
 * RF module 433.92MHz
 * Atmega328A-PU
-* 16MGh oscilator
+* 16MHz oscilator
 * 100nF capacitors
 * 22nF capacitors
 * 4.7μF capacitors
