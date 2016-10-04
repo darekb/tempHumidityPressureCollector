@@ -18,7 +18,6 @@
 
 int main(void) {
     DDRB |= LED;
-    LED_TOG;
     int32_t temperature;
     uint32_t pressure, humidity;
     char req[100];
@@ -26,13 +25,14 @@ int main(void) {
     slUART_SimpleTransmitInit();
     _delay_ms(1000);
     slUART_WriteString("Start.\r\n");
-    if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED, BME280_TSB_62)) {
+    if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_SLEEP, BME280_TSB_1000)) {
         slUART_WriteString("BMP180 init error.\r\n");
     } else {
         slUART_WriteString("BMP180 init done.\r\n");
     }
 
     while (1) {
+        LED_TOG;
         BME280_SetMode(BME280_MODE_FORCED);
         _delay_ms(100);
         if (BME280_ReadAll(&temperature, &pressure, &humidity)) {
@@ -48,8 +48,7 @@ int main(void) {
             slUART_WriteString("\r\n");
         }
         LED_TOG;
-        slUART_WriteString("Pętla.\r\n");
-        _delay_ms(30000);
+        _delay_ms(5000);
     }
     return 0;
 }
