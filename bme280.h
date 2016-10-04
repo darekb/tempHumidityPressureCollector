@@ -59,6 +59,7 @@
 #ifndef __BME280_H__
 #define __BME280_H__
 
+//#ifndef(__STDC_VERSION__) || (__STDC_VERSION__ < 199901L)
 
 /*!
 * @brief The following definition uses for define the data types
