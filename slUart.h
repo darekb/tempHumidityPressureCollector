@@ -8,6 +8,30 @@
 #ifndef SLUART_H_
 #define SLUART_H_
 
+
+// compatibility for the mega161
+#ifndef RXCIE
+  #define RXCIE RXCIE0
+  #define TXCIE TXCIE0
+  #define UDRIE UDRIE0
+  #define RXEN  RXEN0
+  #define TXEN  TXEN0
+  #define CHR9  CHR90
+  #define RXB8  RXB80
+  #define TXB8  TXB80
+  #define UBRRL UBRR0L
+  #define UBRRH UBRR0H
+  #define UCSRB UCSR0B
+  #define UCSRA   UCSR0A
+  #define UCSRB  UCSR0B
+  #define UCSRC  UCSR0C
+  #define UDRE UDRE0
+  #define UDR     UDR0
+  #define UDRIE    UDRIE0
+  #define UCSZ0 UCSZ00
+  #define USBS USBS0
+#endif
+
 #define UART_BAUD 9600
 #define __UBRR ((F_CPU+UART_BAUD*8UL) / (16UL*UART_BAUD)-1)
 

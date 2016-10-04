@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include "slI2C.h"
 #include "slUart.h"
 
 

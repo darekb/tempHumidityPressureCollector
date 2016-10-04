@@ -2,8 +2,9 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.4)
 
 PROJECT(cmake-avr)
 
-SET(MCU_SPEED "16000000")
-SET(AVR_MCU "atmega328P")
+#SET(MCU_SPEED "16000000")
+SET(F_CPU "16000000")
+SET(AVR_MCU "atmega328p")
 set(AVR_H_FUSE 0xd9)
 set(AVR_L_FUSE 0xc4)
 
@@ -28,7 +29,7 @@ include_directories(../common)
 ##########################################################################
 # compiler options for all build types
 ##########################################################################
-add_definitions("-DF_CPU=${MCU_SPEED}")
+add_definitions("-DF_CPU=${F_CPU}")
 #add_definitions("-fpack-struct")
 #add_definitions("-fshort-enums")
 #add_definitions("-Wall")
