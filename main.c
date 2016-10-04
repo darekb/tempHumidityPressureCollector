@@ -25,7 +25,7 @@ int main(void) {
     slUART_SimpleTransmitInit();
     _delay_ms(1000);
     slUART_WriteString("Start.\r\n");
-    if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_SLEEP, BME280_TSB_1000)) {
+    if (BME280_Init(BME280_OS_T_16, BME280_OS_P_16, BME280_OS_H_16, BME280_FILTER_16, BME280_MODE_NORMAL, BME280_TSB_62)) {
         slUART_WriteString("BMP180 init error.\r\n");
     } else {
         slUART_WriteString("BMP180 init done.\r\n");
@@ -33,15 +33,13 @@ int main(void) {
 
     while (1) {
         LED_TOG;
-        BME280_SetMode(BME280_MODE_FORCED);
         _delay_ms(100);
         if (BME280_ReadAll(&temperature, &pressure, &humidity)) {
             slUART_WriteString("Sensor read error!\r\n");
         } else {
-            BME280_SetMode(BME280_MODE_SLEEP);
             sprintf(req, "Temp: %d.%02u Hum: %u.%02u Press: %u.%02u",
                     temperature / 100, temperature % 100,                            //C
-                    //pressure >> 8, ((pressure & 0x000000FF) * 100) >> 8,			//Pa
+                    //(pressure >> 8), ((pressure & 0x000000FF) * 100) >> 8,			//Pa
                     (pressure >> 8) / 100, (pressure >> 8) % 100,                    //hPa
                     humidity >> 10, ((humidity & 0x000003FF) * 100) >> 10);            //rH
             slUART_WriteString(req);
