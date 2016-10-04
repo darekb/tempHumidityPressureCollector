@@ -18,6 +18,7 @@ SET(SOURCE_EXE
         main.c
         slI2C.c
         slUart.c
+        bme280.c
 )
 
 SET(SOURCE_LIB
