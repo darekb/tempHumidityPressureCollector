@@ -17,11 +17,13 @@ Get data from BME280, convert to redable data and send via RF module to laptop w
 ## Software:
 
 * Pure C code
-* adapted library: https://github.com/cosminp12/BME280-Weather-Station
+* adapted library: [https://github.com/cosminp12/BME280-Weather-Station](https://github.com/cosminp12/BME280-Weather-Station)
 
 ## Status
 
-Create template files
+Working library BME280
+
+![image1](https://github.com/darekb/tempHumidityPressureCollector/blob/master/IMG_20161004_230553.jpg?raw=true)
 
 ## Next step
 
