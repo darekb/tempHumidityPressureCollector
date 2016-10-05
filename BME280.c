@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #include <avr/io.h>
 #include <string.h>
 #include "slI2C.h"
+#include "slUart.h"
 #include "BME280.h"
 
 
@@ -69,7 +70,7 @@ uint8_t I2C_WriteData(uint8_t device_addr, uint8_t register_addr, uint8_t *data,
     uint8_t cnt = 0;
     slI2C_Start();                    //Start
     device_addr &= 0xFE;//Device address
-    slI2C_WriteByte(device_addr);
+    slI2C_SetSLA(device_addr);
     slI2C_WriteByte(register_addr);
     while (cnt != length) {
         slI2C_WriteByte(data[cnt++]);
@@ -82,11 +83,11 @@ uint8_t I2C_ReadData(uint8_t device_addr, uint8_t register_addr, uint8_t *data, 
     uint8_t cnt;
     slI2C_Start();
     device_addr &= 0xFE;
-    slI2C_WriteByte(device_addr);
+    slI2C_SetSLA(device_addr);
     slI2C_WriteByte(register_addr);
     slI2C_Start();
     device_addr |= 0x01;
-    slI2C_WriteByte(device_addr);
+    slI2C_SetSLA(device_addr);
     if (length) {
         if (length > 1) {
             for (cnt = 0; cnt < length - 1; cnt++) {
@@ -95,6 +96,8 @@ uint8_t I2C_ReadData(uint8_t device_addr, uint8_t register_addr, uint8_t *data, 
         }
         data[length - 1] = slI2C_ReadByte_NACK();
         slI2C_Stop();                        //Stop
+        slUART_WriteString(data);
+        //slUART_WriteString("\r\n");
         return 0;
     }
 }
@@ -117,11 +120,12 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
     uint8_t Temp;
 
     I2C_ReadData(BME280_I2C_ADDR, ID_REG, &ID, 1);
+    slUART_LogBinary(ID);
     if (ID != 0x60)
         return 1;
 
     I2C_ReadData(BME280_I2C_ADDR, CALIB_00_REG, Buff, 26);
-
+    slUART_WriteString(Buff);
     //ToDo: test im_update bit
     CalibParam.dig_T1 = (Buff[1] << 8) | Buff[0];
     CalibParam.dig_T2 = (Buff[3] << 8) | Buff[2];
@@ -145,11 +149,11 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
     CalibParam.dig_H2 = (Buff[1] << 8) | Buff[0];
     CalibParam.dig_H3 = Buff[2];
     CalibParam.dig_H4 = (Buff[3] << 4) | (Buff[4] & 0x0F);
-    CalibParam.dig_H5 = (Buff[5] << 4) | (Buff[4] >> 4);
+    CalibParam.dig_H5 = (Buff[5] << 4) | ((Buff[4] >> 4) & 0x0F);
     CalibParam.dig_H6 = Buff[6];
 
-   Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
-   I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1);
+//    Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
+//    I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1);
 
     Temp = os_h & 0x07;                                                //hum (0x05)
     I2C_WriteData(BME280_I2C_ADDR, CTRL_HUM_REG, &Temp, 1);
@@ -203,14 +207,7 @@ uint32_t BME280_CompensateH(int32_t adc_H) {
     int32_t v_x1_u32r;
 
     v_x1_u32r = (t_fine - ((int32_t) 76800));
-    v_x1_u32r = (
-            ((((adc_H << 14) - (((int32_t) CalibParam.dig_H4) << 20) - (((int32_t) CalibParam.dig_H5) * v_x1_u32r)) +
-              ((int32_t) 16384)) >> 15) * (((((((v_x1_u32r * ((int32_t) CalibParam.dig_H6)) >> 10) * (((v_x1_u32r *
-                                                                                                        ((int32_t) CalibParam.dig_H3)) >>
-                                                                                                       11) +
-                                                                                                      ((int32_t) 32768))) >>
-                                              10) + ((int32_t) 2097152)) *
-                                            ((int32_t) CalibParam.dig_H2) + 8192) >> 14));
+    v_x1_u32r = (((((adc_H << 14) - (((int32_t) CalibParam.dig_H4) << 20) - (((int32_t) CalibParam.dig_H5) * v_x1_u32r)) + ((int32_t) 16384)) >> 15) * (((((((v_x1_u32r * ((int32_t) CalibParam.dig_H6)) >> 10) * (((v_x1_u32r * ((int32_t) CalibParam.dig_H3)) >>  11) +  ((int32_t) 32768))) >>  10) + ((int32_t) 2097152)) *  ((int32_t) CalibParam.dig_H2) + 8192) >> 14));
     v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
     v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
     v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
@@ -232,12 +229,12 @@ uint8_t BME280_ReadAll(int32_t *t, uint32_t *p, uint32_t *h) {
     if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8))
         return 1;
 
-    UncP = ((uint32_t) Buff[0] << 12) | ((uint32_t) Buff[1] << 4) | (Buff[2] >> 4);
+    UncP = ((uint32_t) Buff[0] << 12) | ((uint16_t) Buff[1] << 4) | (Buff[2] >> 4);
 
     // UncP = ((uint32_t) Buff[0] << 16) | ((uint16_t) Buff[1] << 8) | Buff[2];
     // UncP >>= 4;
 
-    UncT = ((uint32_t) Buff[3] << 12) | ((uint32_t) Buff[4] << 4) | (Buff[5] >> 4);
+    UncT = ((uint32_t) Buff[3] << 12) | ((uint16_t) Buff[4] << 4) | (Buff[5] >> 4);
     // UncT = ((uint32_t) Buff[3] << 16) | ((uint16_t) Buff[4] << 8) | Buff[5];
     // UncT >>= 4;
 

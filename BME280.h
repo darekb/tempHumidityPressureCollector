@@ -26,6 +26,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #ifndef _BME280_H_
 #define _BME280_H_
 
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
 
 //Device Address
 #define BME280_I2C_ADDR		0xEC	//0xEC or 0xEE

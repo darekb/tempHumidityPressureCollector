@@ -3,6 +3,11 @@
 #include <util/delay.h>
 #include <stdio.h>
 
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
+
+
 #include "slI2C.h"
 #include "slUart.h"
 #include "BME280.h"
@@ -27,9 +32,9 @@ int main(void) {
     slUART_WriteString("Start.\r\n");
     // if (BME280_Init(BME280_OS_T_16, BME280_OS_P_16, BME280_OS_H_16, BME280_FILTER_16, BME280_MODE_NORMAL, BME280_TSB_62)) {
     if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED, BME280_TSB_1000)) {
-        slUART_WriteString("BMP180 init error.\r\n");
+        slUART_WriteString("BMP280 init error.\r\n");
     } else {
-        slUART_WriteString("BMP180 init done.\r\n");
+        slUART_WriteString("BMP280 init done.\r\n");
     }
 
     while (1) {

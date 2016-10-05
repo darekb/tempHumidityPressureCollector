@@ -33,24 +33,48 @@ static inline void slI2C_SetError(uint8_t err) {
 #if showDebugData == 1
 void showErrors(const char buff[]) {
 	if (I2C_Error > 0) {
-		slUART_Transmit_String(buff);
-		slUART_Transmit_String(" - ");
+		slUART_WriteString(buff);
+		slUART_WriteString(" - ");
 		if (I2C_Error == 1) {
-			slUART_Transmit_String("START Error \n");
+			slUART_WriteString("START Error \n");
 		}
 		if (I2C_Error == 3) {
-			slUART_Transmit_String("no NACK Error \n");
+			slUART_WriteString("no NACK Error \n");
 		}
 		if (I2C_Error == 4) {
-			slUART_Transmit_String("no ACK Error \n");
+			slUART_WriteString("no ACK Error \n");
 		}
 	}
 //  wyświetlanie potwierdzenia że wszystko poszło dobrze
 //	if (I2C_Error == 0) {
-//		slUART_Transmit_String("ALL OK \n");
+//		slUART_WriteString("ALL OK \n");
 //	}
 }
 #endif
+
+
+uint8_t slI2C_SetSLA(uint8_t byte) {
+	uint8_t twst;
+	slI2C_WaitForComplete();
+	I2C_Error = 0;
+	TWDR = byte;
+	TWCR = (1 << TWINT) | (1 << TWEN);
+	slI2C_WaitForComplete();
+	twst = TW_STATUS & 0xF8;
+	if ( (twst != TW_MT_SLA_ACK) ) {
+		slI2C_SetError(slI2C_NoACKError);
+	}
+#if showDebugData == 1
+	showErrors("slI2C_SetSLA");
+	if (I2C_Error) {
+		slUART_WriteString("byte:  ");
+		slUART_LogBinary(byte);
+		slUART_WriteString("TW_STATUS:  ");
+		slUART_LogBinary(TW_STATUS);
+	}
+#endif
+	return I2C_Error;
+}
 
 void slI2C_SetBusSpeed(uint16_t speed) {
 	uint8_t prescaler = 0;
@@ -79,8 +103,8 @@ uint8_t slI2C_Start() {
 #if showDebugData == 1
 	showErrors("slI2C_Start");
 	if (I2C_Error) {
-		slUART_Transmit_String("TW_STATUS:  ");
-		logBinary(TW_STATUS);
+		slUART_WriteString("TW_STATUS:  ");
+		slUART_LogBinary(TW_STATUS);
 	}
 #endif
 	return I2C_Error;
@@ -109,10 +133,10 @@ uint8_t slI2C_WriteByte(uint8_t byte) {
 #if showDebugData == 1
 	showErrors("slI2C_WriteByte");
 	if (I2C_Error) {
-		slUART_Transmit_String("byte:  ");
-		logBinary(byte);
-		slUART_Transmit_String("TW_STATUS:  ");
-		logBinary(TW_STATUS);
+		slUART_WriteString("byte:  ");
+		slUART_LogBinary(byte);
+		slUART_WriteString("TW_STATUS:  ");
+		slUART_LogBinary(TW_STATUS);
 	}
 #endif
 	return I2C_Error;
@@ -138,6 +162,8 @@ uint8_t slI2C_ReadByte_ACK() {
 #if showDebugData == 1
 	showErrors("slI2C_ReadByte_ACK");
 #endif
+	slUART_WriteString("ReadByte_ACK:  ");
+	slUART_LogBinary(TWDR);
 	return TWDR;
 }
 #endif

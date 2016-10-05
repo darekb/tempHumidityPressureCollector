@@ -6,7 +6,13 @@
  */
 
 #ifndef SLI2C_H_
-#define showDebugData 0
+
+
+#ifndef F_CPU
+#define F_CPU 16000000UL
+#endif
+
+#define showDebugData 1
 #define compileREadFunctions 1
 #define SLI2C_H_
 #define slI2C_Init_Called 0
@@ -18,7 +24,7 @@
 #define I2CBUSCLOCK 100000UL
 uint8_t I2C_Error;
 uint8_t slI2C_statusFlags;
-void slI2C_SetSLA(uint16_t slaIn);
+uint8_t slI2C_SetSLA(uint8_t slaIn);
 void slI2C_SetBusSpeed(uint16_t speed);
 void slI2C_Init();
 uint8_t slI2C_Start();
