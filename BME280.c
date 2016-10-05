@@ -148,13 +148,13 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
     CalibParam.dig_H5 = (Buff[5] << 4) | (Buff[4] >> 4);
     CalibParam.dig_H6 = Buff[6];
 
-    Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config
-    I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1);
+   Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
+   I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1);
 
-    Temp = os_h & 0x07;                                                //hum
+    Temp = os_h & 0x07;                                                //hum (0x05)
     I2C_WriteData(BME280_I2C_ADDR, CTRL_HUM_REG, &Temp, 1);
 
-    Temp = (os_t << 5) | ((os_p & 0x07) << 2) | (mode & 0x03);        //meas
+    Temp = (os_t << 5) | ((os_p & 0x07) << 2) | (mode & 0x03);        //meas (0xB7)
     I2C_WriteData(BME280_I2C_ADDR, CTRL_MEAS_REG, &Temp, 1);
 
     return 0;
@@ -232,13 +232,17 @@ uint8_t BME280_ReadAll(int32_t *t, uint32_t *p, uint32_t *h) {
     if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8))
         return 1;
 
-    UncP = ((uint32_t) Buff[0] << 16) | ((uint16_t) Buff[1] << 8) | Buff[2];
-    UncP >>= 4;
+    UncP = ((uint32_t) Buff[0] << 12) | ((uint32_t) Buff[1] << 4) | (Buff[2] >> 4);
 
-    UncT = ((uint32_t) Buff[3] << 16) | ((uint16_t) Buff[4] << 8) | Buff[5];
-    UncT >>= 4;
+    // UncP = ((uint32_t) Buff[0] << 16) | ((uint16_t) Buff[1] << 8) | Buff[2];
+    // UncP >>= 4;
+
+    UncT = ((uint32_t) Buff[3] << 12) | ((uint32_t) Buff[4] << 4) | (Buff[5] >> 4);
+    // UncT = ((uint32_t) Buff[3] << 16) | ((uint16_t) Buff[4] << 8) | Buff[5];
+    // UncT >>= 4;
 
     UncH = ((uint16_t) Buff[6] << 8) | Buff[7];
+    //UncH = ((uint16_t) Buff[6] << 8) | Buff[7];
 
     *t = BME280_CompensateT(UncT);
     *p = BME280_CompensateP(UncP);
