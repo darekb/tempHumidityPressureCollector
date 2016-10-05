@@ -43,13 +43,13 @@ int main(void) {
         if (BME280_ReadAll(&temperature, &pressure, &humidity)) {
             slUART_WriteString("Sensor read error!\r\n");
         } else {
-            sprintf(req, "Temp: %d.%02u Hum: %u.%02u Press: %u.%02u",
+            sprintf(req, "Temp: %d.%02u Press: %u.%02u Hum: %u.%02u",
                     temperature / 100, temperature % 100,                            //C
                     //(pressure >> 8), ((pressure & 0x000000FF) * 100) >> 8,			//Pa
                     (pressure >> 8) / 100, (pressure >> 8) % 100,                    //hPa
                     humidity >> 10, ((humidity & 0x000003FF) * 100) >> 10);            //rH
-            slUART_WriteString(req);
-            slUART_WriteString("\r\n");
+            //slUART_WriteString(req);
+            //slUART_WriteString("\r\n");
         }
         LED_TOG;
         _delay_ms(5000);

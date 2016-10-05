@@ -152,8 +152,8 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
     CalibParam.dig_H5 = (Buff[5] << 4) | ((Buff[4] >> 4) & 0x0F);
     CalibParam.dig_H6 = Buff[6];
 
-//    Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
-//    I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1);
+    Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
+    I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1);
 
     Temp = os_h & 0x07;                                                //hum (0x05)
     I2C_WriteData(BME280_I2C_ADDR, CTRL_HUM_REG, &Temp, 1);
