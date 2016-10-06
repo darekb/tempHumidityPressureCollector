@@ -169,6 +169,49 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
     CalibParam.dig_H5 = (Buff[5] << 4) | ((Buff[4] >> 4) & 0x0F);
     CalibParam.dig_H6 = Buff[6];
 
+#if showDebugData == 1
+
+    slUART_WriteString("CalibParam.dig_T1: ");
+    slUART_LogBinary(CalibParam.dig_T1);
+    slUART_WriteString("CalibParam.dig_T2: ");
+    slUART_LogBinary(CalibParam.dig_T2);
+    slUART_WriteString("CalibParam.dig_T3: ");
+    slUART_LogBinary(CalibParam.dig_T3);
+
+    slUART_WriteString("CalibParam.dig_P1: ");
+    slUART_LogBinary(CalibParam.dig_P1);
+    slUART_WriteString("CalibParam.dig_P2: ");
+    slUART_LogBinary(CalibParam.dig_P2);
+    slUART_WriteString("CalibParam.dig_P3: ");
+    slUART_LogBinary(CalibParam.dig_P3);
+    slUART_WriteString("CalibParam.dig_P4: ");
+    slUART_LogBinary(CalibParam.dig_P4);
+    slUART_WriteString("CalibParam.dig_P5: ");
+    slUART_LogBinary(CalibParam.dig_P5);
+    slUART_WriteString("CalibParam.dig_P6: ");
+    slUART_LogBinary(CalibParam.dig_P6);
+    slUART_WriteString("CalibParam.dig_P7: ");
+    slUART_LogBinary(CalibParam.dig_P7);
+    slUART_WriteString("CalibParam.dig_P8: ");
+    slUART_LogBinary(CalibParam.dig_P8);
+    slUART_WriteString("CalibParam.dig_P9: ");
+    slUART_LogBinary(CalibParam.dig_P9);
+
+
+    slUART_WriteString("CalibParam.dig_H1: ");
+    slUART_LogBinary(CalibParam.dig_H1);
+    slUART_WriteString("CalibParam.dig_H2: ");
+    slUART_LogBinary(CalibParam.dig_H2);
+    slUART_WriteString("CalibParam.dig_H3: ");
+    slUART_LogBinary(CalibParam.dig_H3);
+    slUART_WriteString("CalibParam.dig_H4: ");
+    slUART_LogBinary(CalibParam.dig_H4);
+    slUART_WriteString("CalibParam.dig_H5: ");
+    slUART_LogBinary(CalibParam.dig_H5);
+    slUART_WriteString("CalibParam.dig_H6: ");
+    slUART_LogBinary(CalibParam.dig_H6);
+#endif
+
     Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
     I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1);
 
@@ -191,6 +234,13 @@ int32_t BME280_CompensateT(int32_t adc_T) {
     t_fine = var1 + var2;
     T = (t_fine * 5 + 128) >> 8;
 
+#if showDebugData == 1
+    slUART_WriteString("BME280_CompensateT: ");
+    slUART_LogBinary((uint8_t)(T & 0xF) );
+    slUART_LogBinary((uint8_t)((T >> 8) & 0xF) );
+    slUART_LogBinary((uint8_t)((T >> 16) & 0xF) );
+    slUART_LogBinary((uint8_t)((T >> 24) & 0xF) );
+#endif
     return T;
 }
 
@@ -215,6 +265,13 @@ uint32_t BME280_CompensateP(int32_t adc_P) {
     var2 = (((int64_t) CalibParam.dig_P8) * p) >> 19;
     p = ((p + var1 + var2) >> 8) + (((int64_t) CalibParam.dig_P7) << 4);
 
+#if showDebugData == 1
+    slUART_WriteString("BME280_CompensateP: ");
+    slUART_LogBinary((uint8_t)(p & 0xF) );
+    slUART_LogBinary((uint8_t)((p >> 8) & 0xF) );
+    slUART_LogBinary((uint8_t)((p >> 16) & 0xF) );
+    slUART_LogBinary((uint8_t)((p >> 24) & 0xF) );
+#endif
     return (uint32_t) p;
 }
 
@@ -233,8 +290,15 @@ uint32_t BME280_CompensateH(int32_t adc_H) {
     v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
     v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
     v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-
-    return (uint32_t) (v_x1_u32r >> 12);
+    v_x1_u32r = (v_x1_u32r >> 12);
+#if showDebugData == 1
+    slUART_WriteString("BME280_CompensateH: ");
+    slUART_LogBinary((uint8_t)(v_x1_u32r & 0xF) );
+    slUART_LogBinary((uint8_t)((v_x1_u32r >> 8) & 0xF) );
+    slUART_LogBinary((uint8_t)((v_x1_u32r >> 16) & 0xF) );
+    slUART_LogBinary((uint8_t)((v_x1_u32r >> 24) & 0xF) );
+#endif
+    return (uint32_t) v_x1_u32r;
 }
 
 /**********************************************************************
@@ -271,6 +335,15 @@ uint8_t BME280_ReadAll(int32_t *t, uint32_t *p, uint32_t *h) {
 
     UncH = ((uint16_t) Buff[6] << 8) | Buff[7];
     //UncH = ((uint16_t) Buff[6] << 8) | Buff[7];
+
+#if showDebugData == 1
+    slUART_WriteString("UncP: ");
+    slUART_LogBinary(UncP);
+    slUART_WriteString("UncT: ");
+    slUART_LogBinary(UncT);
+    slUART_WriteString("UncH: ");
+    slUART_LogBinary(UncH);
+#endif
 
     *t = BME280_CompensateT(UncT);
     *p = BME280_CompensateP(UncP);
