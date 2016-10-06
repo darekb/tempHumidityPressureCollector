@@ -15,6 +15,8 @@
 
 #endif
 
+uint8_t slI2C_readByteValue = 0;
+
 uint8_t slI2C_statusFlags = 0;
 
 uint8_t I2C_Error = 0;
@@ -29,6 +31,10 @@ static inline void slI2C_WaitTillStopWasSent() {
 
 static inline void slI2C_SetError(uint8_t err) {
     I2C_Error = err;
+}
+
+uint8_t slI2C_returnReadValue() {
+    return slI2C_readByteValue;
 }
 
 #if showDebugData == 1
@@ -158,7 +164,8 @@ uint8_t slI2C_ReadByte_NACK() {
 #endif
     slUART_WriteString("ReadByte_NACK:  ");
     slUART_LogBinary(TWDR);
-    return TWDR;
+    slI2C_readByteValue = TWDR;
+    return I2C_Error;
 }
 
 uint8_t slI2C_ReadByte_ACK() {
@@ -171,7 +178,8 @@ uint8_t slI2C_ReadByte_ACK() {
 #endif
     slUART_WriteString("ReadByte_ACK:  ");
     slUART_LogBinary(TWDR);
-    return TWDR;
+    slI2C_readByteValue = TWDR;
+    return I2C_Error;
 }
 
 #endif

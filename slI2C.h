@@ -22,8 +22,10 @@
 #define slI2C_NACK 0
 #define slI2C_ACK 1
 #define I2CBUSCLOCK 100000UL
+uint8_t slI2C_readByteValue;
 uint8_t I2C_Error;
 uint8_t slI2C_statusFlags;
+uint8_t slI2C_returnReadValue();
 uint8_t slI2C_SetSLA(uint8_t slaIn);
 void slI2C_SetBusSpeed(uint16_t speed);
 void slI2C_Init();

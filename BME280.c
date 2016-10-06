@@ -68,34 +68,64 @@ int32_t t_fine;        // t_fine carries fine temperature as global value
 
 uint8_t I2C_WriteData(uint8_t device_addr, uint8_t register_addr, uint8_t *data, uint8_t length) {
     uint8_t cnt = 0;
-    slI2C_Start();                    //Start
-    device_addr &= 0xFE;//Device address
-    slI2C_SetSLA(device_addr);
-    slI2C_WriteByte(register_addr);
-    while (cnt != length) {
-        slI2C_WriteByte(data[cnt++]);
+    if (slI2C_Start()) {
+        return 1;
     }
-    slI2C_Stop();                        //Stop
+    device_addr &= 0xFE;//Device address
+    if (slI2C_SetSLA(device_addr)) {
+        return 1;
+    }
+    if (slI2C_WriteByte(register_addr)) {
+        return 1;
+    }
+    while (cnt != length) {
+        if (slI2C_WriteByte(data[cnt++])) {
+            return 1;
+        }
+    }
+    if (slI2C_Stop()) {
+        return 1;
+    }
     return 0;
 }
 
 uint8_t I2C_ReadData(uint8_t device_addr, uint8_t register_addr, uint8_t *data, uint8_t length) {
     uint8_t cnt;
-    slI2C_Start();
-    device_addr &= 0xFE;
-    slI2C_SetSLA(device_addr);
-    slI2C_WriteByte(register_addr);
-    slI2C_Start();
+    if (slI2C_Start()) {
+        return 1;
+    }
+    device_addr &= 0xFE;//Device address
+    if (slI2C_SetSLA(device_addr)) {
+        return 1;
+    }
+    if (slI2C_WriteByte(register_addr)) {
+        return 1;
+    }
+    if (slI2C_Start()) {
+        return 1;
+    }
     device_addr |= 0x01;
-    slI2C_SetSLA(device_addr);
+    if (slI2C_SetSLA(device_addr)) {
+        return 1;
+    }
     if (length) {
         if (length > 1) {
             for (cnt = 0; cnt < length - 1; cnt++) {
-                data[cnt] = slI2C_ReadByte_ACK();
+                if (slI2C_ReadByte_ACK()) {
+                    return 1;
+                } else {
+                    data[cnt] = slI2C_returnReadValue();
+                }
             }
         }
-        data[length - 1] = slI2C_ReadByte_NACK();
-        slI2C_Stop();              //Stop
+        if (slI2C_ReadByte_NACK()) {
+            return 1;
+        } else {
+            data[length - 1] = slI2C_returnReadValue();
+        }
+        if (slI2C_Stop()) {
+            return 1;
+        }              //Stop
         return 0;
     }
 }
@@ -118,23 +148,27 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
     uint8_t Temp;
     uint8_t cnt;
 
-    I2C_ReadData(BME280_I2C_ADDR, ID_REG, &ID, 1);
+    if (I2C_ReadData(BME280_I2C_ADDR, ID_REG, &ID, 1)) {
 #if showDebugData == 1
-    slUART_WriteString("ID:  ");
-    slUART_LogBinary(ID);
+        slUART_WriteString("ID:  ");
+        slUART_LogBinary(ID);
 #endif
+        return 1;
+    }
     if (ID != 0x60)
         return 1;
 
-    I2C_ReadData(BME280_I2C_ADDR, CALIB_00_REG, Buff, 26);
+    if (I2C_ReadData(BME280_I2C_ADDR, CALIB_00_REG, Buff, 26)) {
 #if showDebugData == 1
-    for (cnt = 0; cnt < 25; cnt++) {
-        slUART_WriteString("BME280_Init - Buff[");
-        slUART_LogDec(cnt);
-        slUART_WriteString("]: ");
-        slUART_LogBinary(Buff[cnt]);
-    }
+        for (cnt = 0; cnt < 25; cnt++) {
+            slUART_WriteString("BME280_Init - Buff[");
+            slUART_LogDec(cnt);
+            slUART_WriteString("]: ");
+            slUART_LogBinary(Buff[cnt]);
+        }
 #endif
+        return 1;
+    }
     //ToDo: test im_update bit
     CalibParam.dig_T1 = (Buff[1] << 8) | Buff[0];
     CalibParam.dig_T2 = (Buff[3] << 8) | Buff[2];
@@ -153,15 +187,17 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
     CalibParam.dig_H1 = Buff[25];
 
     memset(Buff, 0, 7);
-    I2C_ReadData(BME280_I2C_ADDR, CALIB_26_REG, Buff, 7);
+    if (I2C_ReadData(BME280_I2C_ADDR, CALIB_26_REG, Buff, 7)) {
 #if showDebugData == 1
-    for (cnt = 0; cnt < 6; cnt++) {
-        slUART_WriteString("BME280_Init - Buff[");
-        slUART_LogDec(cnt);
-        slUART_WriteString("]: ");
-        slUART_LogBinary(Buff[cnt]);
-    }
+        for (cnt = 0; cnt < 6; cnt++) {
+            slUART_WriteString("BME280_Init - Buff[");
+            slUART_LogDec(cnt);
+            slUART_WriteString("]: ");
+            slUART_LogBinary(Buff[cnt]);
+        }
 #endif
+        return 1;
+    }
 
     CalibParam.dig_H2 = (Buff[1] << 8) | Buff[0];
     CalibParam.dig_H3 = Buff[2];
@@ -213,13 +249,19 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
 #endif
 
     Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
-    I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1);
+    if (I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1)) {
+        return 1;
+    }
 
     Temp = os_h & 0x07;                                                //hum (0x05)
-    I2C_WriteData(BME280_I2C_ADDR, CTRL_HUM_REG, &Temp, 1);
+    if (I2C_WriteData(BME280_I2C_ADDR, CTRL_HUM_REG, &Temp, 1)) {
+        return 1;
+    }
 
     Temp = (os_t << 5) | ((os_p & 0x07) << 2) | (mode & 0x03);        //meas (0xB7)
-    I2C_WriteData(BME280_I2C_ADDR, CTRL_MEAS_REG, &Temp, 1);
+    if (I2C_WriteData(BME280_I2C_ADDR, CTRL_MEAS_REG, &Temp, 1)) {
+        return 1;
+    }
 
     return 0;
 }
@@ -236,10 +278,10 @@ int32_t BME280_CompensateT(int32_t adc_T) {
 
 #if showDebugData == 1
     slUART_WriteString("BME280_CompensateT: ");
-    slUART_LogBinary((uint8_t)(T & 0xF) );
-    slUART_LogBinary((uint8_t)((T >> 8) & 0xF) );
-    slUART_LogBinary((uint8_t)((T >> 16) & 0xF) );
-    slUART_LogBinary((uint8_t)((T >> 24) & 0xF) );
+    slUART_LogBinary((uint8_t) (T & 0xF));
+    slUART_LogBinary((uint8_t) ((T >> 8) & 0xF));
+    slUART_LogBinary((uint8_t) ((T >> 16) & 0xF));
+    slUART_LogBinary((uint8_t) ((T >> 24) & 0xF));
 #endif
     return T;
 }
@@ -267,10 +309,10 @@ uint32_t BME280_CompensateP(int32_t adc_P) {
 
 #if showDebugData == 1
     slUART_WriteString("BME280_CompensateP: ");
-    slUART_LogBinary((uint8_t)(p & 0xF) );
-    slUART_LogBinary((uint8_t)((p >> 8) & 0xF) );
-    slUART_LogBinary((uint8_t)((p >> 16) & 0xF) );
-    slUART_LogBinary((uint8_t)((p >> 24) & 0xF) );
+    slUART_LogBinary((uint8_t) (p & 0xF));
+    slUART_LogBinary((uint8_t) ((p >> 8) & 0xF));
+    slUART_LogBinary((uint8_t) ((p >> 16) & 0xF));
+    slUART_LogBinary((uint8_t) ((p >> 24) & 0xF));
 #endif
     return (uint32_t) p;
 }
@@ -293,10 +335,10 @@ uint32_t BME280_CompensateH(int32_t adc_H) {
     v_x1_u32r = (v_x1_u32r >> 12);
 #if showDebugData == 1
     slUART_WriteString("BME280_CompensateH: ");
-    slUART_LogBinary((uint8_t)(v_x1_u32r & 0xF) );
-    slUART_LogBinary((uint8_t)((v_x1_u32r >> 8) & 0xF) );
-    slUART_LogBinary((uint8_t)((v_x1_u32r >> 16) & 0xF) );
-    slUART_LogBinary((uint8_t)((v_x1_u32r >> 24) & 0xF) );
+    slUART_LogBinary((uint8_t) (v_x1_u32r & 0xF));
+    slUART_LogBinary((uint8_t) ((v_x1_u32r >> 8) & 0xF));
+    slUART_LogBinary((uint8_t) ((v_x1_u32r >> 16) & 0xF));
+    slUART_LogBinary((uint8_t) ((v_x1_u32r >> 24) & 0xF));
 #endif
     return (uint32_t) v_x1_u32r;
 }
@@ -313,8 +355,8 @@ uint8_t BME280_ReadAll(int32_t *t, uint32_t *p, uint32_t *h) {
     int32_t UncT, UncP, UncH;
     uint8_t cnt;
 
-    if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8))
-        return 1;
+    if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8)){
+        
 #if showDebugData == 1
     for (cnt = 0; cnt < 7; cnt++) {
         slUART_WriteString("Buff[");
@@ -323,6 +365,8 @@ uint8_t BME280_ReadAll(int32_t *t, uint32_t *p, uint32_t *h) {
         slUART_LogBinary(Buff[cnt]);
     }
 #endif
+    return 1;
+}
 
     UncP = ((uint32_t) Buff[0] << 12) | ((uint16_t) Buff[1] << 4) | (Buff[2] >> 4);
 
@@ -361,7 +405,9 @@ uint8_t BME280_SetMode(uint8_t mode) {
     uint8_t RegVal = 0;
 
     mode &= 0x03;
-    I2C_ReadData(BME280_I2C_ADDR, CTRL_MEAS_REG, &RegVal, 1);
+    if (I2C_ReadData(BME280_I2C_ADDR, CTRL_MEAS_REG, &RegVal, 1)){
+        return 1;
+    }
     RegVal &= 0xFC;
     RegVal |= mode;
     return I2C_WriteData(BME280_I2C_ADDR, CTRL_MEAS_REG, &RegVal, 1);
