@@ -30,6 +30,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #define F_CPU 16000000UL
 #endif
 
+#define showDebugData 1
+
 //Device Address
 #define BME280_I2C_ADDR		0xEC	//0xEC or 0xEE
 

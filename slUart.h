@@ -45,4 +45,6 @@ void slUART_LogBinary(uint8_t dataIn);
 
 void slUART_LogDec(uint8_t dataIn);
 
+void slUART_LogHex(uint8_t dataIn);
+
 #endif /* SLUART_H_ */

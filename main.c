@@ -31,7 +31,8 @@ int main(void) {
     _delay_ms(1000);
     slUART_WriteString("Start.\r\n");
     // if (BME280_Init(BME280_OS_T_16, BME280_OS_P_16, BME280_OS_H_16, BME280_FILTER_16, BME280_MODE_NORMAL, BME280_TSB_62)) {
-    if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED, BME280_TSB_1000)) {
+    if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED,
+                    BME280_TSB_1000)) {
         slUART_WriteString("BMP280 init error.\r\n");
     } else {
         slUART_WriteString("BMP280 init done.\r\n");

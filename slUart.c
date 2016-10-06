@@ -63,3 +63,9 @@ void slUART_LogDec(uint8_t dataIn){
 		slUART_WriteString(buff);
 		slUART_WriteString("\n");
 }
+void slUART_LogHex(uint8_t dataIn){
+		char buff[30];
+		itoa(dataIn, buff, 16);
+		slUART_WriteString(buff);
+		slUART_WriteString("\n");
+}
