@@ -29,6 +29,9 @@ int main(void) {
     slI2C_Init();
     slUART_SimpleTransmitInit();
     _delay_ms(1000);
+    #ifdef TEST
+    slUART_WriteString("test Cmake.\r\n");
+    #endif
     slUART_WriteString("Start.\r\n");
     // if (BME280_Init(BME280_OS_T_16, BME280_OS_P_16, BME280_OS_H_16, BME280_FILTER_16, BME280_MODE_NORMAL, BME280_TSB_62)) {
     if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED,
@@ -49,8 +52,8 @@ int main(void) {
                     //(pressure >> 8), ((pressure & 0x000000FF) * 100) >> 8,			//Pa
                     (pressure >> 8) / 100, (pressure >> 8) % 100,                    //hPa
                     humidity >> 10, ((humidity & 0x000003FF) * 100) >> 10);            //rH
-            //slUART_WriteString(req);
-            //slUART_WriteString("\r\n");
+            slUART_WriteString(req);
+            slUART_WriteString("\r\n");
         }
         LED_TOG;
         _delay_ms(5000);
