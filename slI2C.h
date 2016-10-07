@@ -12,7 +12,7 @@
 #define F_CPU 16000000UL
 #endif
 
-#define showDebugDataI2C 1
+#define showDebugDataI2C 0
 #define compileREadFunctions 1
 #define SLI2C_H_
 #define slI2C_Init_Called 0
