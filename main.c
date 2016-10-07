@@ -12,9 +12,6 @@
 #include "slUart.h"
 #include "BME280.h"
 
-
-//TODO pomiary na rządanie
-//TODO 
 //TODO średnia wleczone dla pomiarów
 //TODO implementacja RF module 433.92MHz
 
@@ -28,7 +25,6 @@ int main(void) {
     char req[100];
     slI2C_Init();
     slUART_SimpleTransmitInit();
-    _delay_ms(1000);
     #ifdef TEST
     slUART_WriteString("test Cmake.\r\n");
     #endif
@@ -39,7 +35,6 @@ int main(void) {
     } else {
         slUART_WriteString("BMP280 init done.\r\n");
     }
-
     while (1) {
         LED_TOG;
         _delay_ms(100);
@@ -49,7 +44,7 @@ int main(void) {
             if (BME280_ReadAll(&temperature, &pressure, &humidity)) {
                 slUART_WriteString("Sensor read error!\r\n");
             } else {
-                sprintf(req, "Temp: %d.%02u Press: %u.%02u Hum: %u.%02u",
+                sprintf(req, "Temp: %d.%02u Hum: %u.%02u Press: %u.%02u",
                         temperature / 100, temperature % 100,                            //C
                         //(pressure >> 8), ((pressure & 0x000000FF) * 100) >> 8,			//Pa
                         (pressure >> 8) / 100, (pressure >> 8) % 100,                    //hPa
