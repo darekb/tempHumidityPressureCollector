@@ -32,6 +32,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
 #define showDebugDataBME280 0
 
+
+#define ID_REG            0xD0
+#define PRESS_MSB_REG    0xF7
+#define CALIB_00_REG    0x88
+#define CALIB_26_REG    0xE1
+#define CONFIG_REG        0xF5
+#define CTRL_MEAS_REG    0xF4
+#define STATUS_REG        0xF3
+#define CTRL_HUM_REG    0xF2
+
 //Device Address
 #define BME280_I2C_ADDR		0xEC	//0xEC or 0xEE
 
