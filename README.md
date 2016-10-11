@@ -12,7 +12,7 @@ Get data from BME280, convert to redable data and send via RF module to laptop w
 * 22nF capacitors
 * 4.7μF capacitors
 * LF33CV3 linear voltage regulator
-* some wires and connectors
+* some wires and connectors :)
 
 ## Software:
 
@@ -21,13 +21,13 @@ Get data from BME280, convert to redable data and send via RF module to laptop w
 
 ## Status
 
-Working library BME280
+Working on library BME280
 
 ![image1](https://github.com/darekb/tempHumidityPressureCollector/blob/master/IMG_20161004_230553.jpg?raw=true)
 
 ## Next step
 
-Create library for BME280
+Create library for RF module 433.92MHz
 
 
 

@@ -2,6 +2,13 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.4)
 
 SET(CMAKE_SYSTEM_NAME Generic)
 
+##########################################################################
+# add main.h in build time
+##########################################################################
+configure_file(main.h.in main.h)
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+
 option(WITH_MCU "Add the mCU type to the target file name." ON)
 
 ##########################################################################
