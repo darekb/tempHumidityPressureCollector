@@ -261,7 +261,6 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
 int32_t BME280_CompensateT(int32_t adc_T) {
   int32_t var1, var2, T;
 
-  //orginal
 
   var1 = ((((adc_T >> 3) - ((int32_t) CalibParam.dig_T1 << 1))) * ((int32_t) CalibParam.dig_T2)) >> 11;
   var2 = (((((adc_T >> 4) - ((int32_t) CalibParam.dig_T1)) * ((adc_T >> 4) - ((int32_t) CalibParam.dig_T1))) >> 12) *
@@ -269,19 +268,6 @@ int32_t BME280_CompensateT(int32_t adc_T) {
   t_fine = var1 + var2;
   T = (t_fine * 5 + 128) >> 8;
 
-//  var1 = ((((adc_T >> 3) - ((int32_t) CalibParam.dig_T1 << 1))) * ((int32_t) CalibParam.dig_T2)) >> 11;
-//  var2 = (((((adc_T >> 4) - ((int32_t) CalibParam.dig_T1)) * ((adc_T >> 4) - ((int32_t) CalibParam.dig_T1))) >> 12) *
-//          ((int32_t) CalibParam.dig_T3)) >> 14;
-//  t_fine = var1 + var2;
-//  T = (t_fine * 5 + 128) >> 8;
-
-
-  //from dokuemntation
-//  var1 = (((int32_t)adc_T)/16384.0 - ((int32_t)CalibParam.dig_T1)/1024.0) * ((int32_t)CalibParam.dig_T2);
-//  var2 = ((((int32_t)adc_T)/131072.0 - ((int32_t)CalibParam.dig_T1)/8192.0) *
-//      (((int32_t)adc_T)/131072.0 - ((int32_t) CalibParam.dig_T1)/8192.0)) * ((int32_t)CalibParam.dig_T3);
-//  t_fine = (uint32_t)(var1 + var2);
-//  T = (var1 + var2) / 5120.0;
   return T;
 
 #if showDebugDataBME280 == 1
@@ -299,85 +285,35 @@ int32_t BME280_CompensateT(int32_t adc_T) {
 uint32_t BME280_CompensateP(int32_t adc_P) {
   int32_t var1, var2, p;
 
-  //orginal and documentation
-//  var1 = ((int64_t) t_fine) - 128000;
-//  var2 = var1 * var1 * (int64_t) CalibParam.dig_P6;
-//  var2 = var2 + ((var1 * (int64_t) CalibParam.dig_P5) << 17);
-//  var2 = var2 + (((int64_t) CalibParam.dig_P4) << 35);
-//  var1 = ((var1 * var1 * (int64_t) CalibParam.dig_P3) >> 8) + ((var1 * (int64_t) CalibParam.dig_P2) << 12);
-//  var1 = (((((int64_t) 1) << 47) + var1)) * ((int64_t) CalibParam.dig_P1) >> 33;
-//
-//  if (var1 == 0)
-//    return 0;    //avoid exception caused by division by zero
-//
-//  p = 1048576 - adc_P;
-//  p = (((p << 31) - var2) * 3125) / var1;
-//  var1 = (((int64_t) CalibParam.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-//  var2 = (((int64_t) CalibParam.dig_P8) * p) >> 19;
-//  p = ((p + var1 + var2) >> 8) + (((int64_t) CalibParam.dig_P7) << 4);
+  var1 = (((int32_t) t_fine) >> 1) - (int32_t) 64000;
+  var2 = (((var1 >> 2) * (var1 >> 2)) >> 11) * (int32_t) CalibParam.dig_P6;
+  var2 = var2 + ((var1 * ((int32_t) CalibParam.dig_P5)) << 1);
 
-  //from bosh library
-//  var1 = (int64_t)t_fine - 128000;
-//  var2 = var1 * var1 * (int64_t)CalibParam.dig_P6;
-//  var2 = var2 + ((var1 * (int64_t)CalibParam.dig_P5) << 17);
-//  var2 = var2 + (((int64_t)CalibParam.dig_P4) << 35);
-//  var1 = ((var1 * var1 * (int64_t)CalibParam.dig_P3) >> 8) + ((var1 * (int64_t)CalibParam.dig_P2) << 12);
-//  var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)CalibParam.dig_P1) >> 33;
-//  if (var1 == 0) { return 0; }                                      // Don't divide by zero.
-//  p  = 1048576 - adc_P;
-//  p = (((p << 31) - var2) * 3125)/var1;
-//  var1 = (((int64_t)CalibParam.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-//  var2 = (((int64_t)CalibParam.dig_P8) * p) >> 19;
-//  p = ((p + var1 + var2) >> 8) + (((int64_t)CalibParam.dig_P7) << 4);
-//
-//  p = ((uint32_t)p)/256.0;
+  var2 = (var2 >> 2) + (((int32_t) CalibParam.dig_P4) << 16);
 
-  //from adafruit library
-//  var1 = (((int32_t) t_fine) >> 1) - (int32_t) 64000;
-//  var2 = (((var1 >> 2) * (var1 >> 2)) >> 11) * (int32_t) CalibParam.dig_P6;
-//  var2 = var2 + ((var1 * ((int32_t) CalibParam.dig_P5)) << 1);
-//
-//  var2 = (var2 >> 2) + (((int32_t) CalibParam.dig_P4) << 16);
-//
-//  var1 = (((CalibParam.dig_P3 * (((var1 >> 2) * (var1 >> 2)) >> 13)) >> 3) +
-//          ((((int32_t) CalibParam.dig_P2) * var1) >> 1)) >> 18;
-//  var1 = ((((32768 + var1)) * ((int32_t) CalibParam.dig_P1)) >> 15);
-//
-//
-//  p = (((uint32_t) (((int32_t) 1048576) - adc_P) - (var2 >> 12))) * 3125;
-//  if (p < 0x80000000) {
-//    if (var1 == 0) {
-//      return 0;    //avoid exception caused by division by zero
-//    } else {
-//      p = (p << 1) / ((uint32_t) var1);
-//    }
-//  } else {
-//    if (var1 == 0) {
-//      return 0;
-//    } else {
-//      p = (p / (uint32_t) var1) * 2;
-//    }
-//  }
-//  var1 = (((int32_t) CalibParam.dig_P9) * ((int32_t) (((p >> 3) * (p >> 3)) >> 13))) >> 12;
-//  var2 = (((int32_t) (p >> 2)) * ((int32_t) CalibParam.dig_P8)) >> 13;
-//  p = (uint32_t) ((int32_t) p + ((var1 + var2 + CalibParam.dig_P7) >> 4));
+  var1 = (((CalibParam.dig_P3 * (((var1 >> 2) * (var1 >> 2)) >> 13)) >> 3) +
+          ((((int32_t) CalibParam.dig_P2) * var1) >> 1)) >> 18;
+  var1 = ((((32768 + var1)) * ((int32_t) CalibParam.dig_P1)) >> 15);
 
-  //from documentation
-  // var1 = ((int32_t)adc_P/2.0) - 64000.0;
-  // var2 = var1 * var1 * ((int32_t)CalibParam.dig_P6) / 32768.0;
-  // var2 = var2 + var1 * ((int32_t)CalibParam.dig_P5) * 2.0;
-  // var2 = (var2/4.0)+(((int32_t)CalibParam.dig_P4) * 65536.0);
-  // var1 = (((int32_t)CalibParam.dig_P3) * var1 * var1 / 524288.0 + ((int32_t)CalibParam.dig_P2) * var1) / 524288.0;
-  // var1 = (1.0 + var1 / 32768.0)*((int32_t)CalibParam.dig_P1);
-  // if (var1 == 0.0)
-  // {
-  //   return 0; // avoid exception caused by division by zero
-  // }
-  // p = 1048576.0 - (int32_t)adc_P;
-  // p = (p - (var2 / 4096.0)) * 6250.0 / var1;
-  // var1 = ((int32_t)CalibParam.dig_P9) * p * p / 2147483648.0;
-  // var2 = p * ((int32_t)CalibParam.dig_P8) / 32768.0;
-  // p = p + (var1 + var2 + ((int32_t)CalibParam.dig_P7)) / 16.0;
+
+  p = (((uint32_t) (((int32_t) 1048576) - adc_P) - (var2 >> 12))) * 3125;
+  if (p < 0x80000000) {
+    if (var1 == 0) {
+      return 0;    //avoid exception caused by division by zero
+    } else {
+      p = (p << 1) / ((uint32_t) var1);
+    }
+  } else {
+    if (var1 == 0) {
+      return 0;
+    } else {
+      p = (p / (uint32_t) var1) * 2;
+    }
+  }
+  var1 = (((int32_t) CalibParam.dig_P9) * ((int32_t) (((p >> 3) * (p >> 3)) >> 13))) >> 12;
+  var2 = (((int32_t) (p >> 2)) * ((int32_t) CalibParam.dig_P8)) >> 13;
+  p = (uint32_t) ((int32_t) p + ((var1 + var2 + CalibParam.dig_P7) >> 4));
+
 
 #if showDebugDataBME280 == 1
   slUART_WriteString("BME280_CompensateP: ");
@@ -393,41 +329,17 @@ uint32_t BME280_CompensateP(int32_t adc_P) {
 // Output value of �47445� represents 47445/1024 = 46.333 %RH
 uint32_t BME280_CompensateH(int32_t adc_H) {
   int32_t v_x1_u32;
-  //original
-  // v_x1_u32 = (t_fine - ((int32_t) 76800));
-  // v_x1_u32 = (
-  //     ((((adc_H << 14) - (((int32_t) CalibParam.dig_H4) << 20) - (((int32_t) CalibParam.dig_H5) * v_x1_u32)) +
-  //       ((int32_t) 16384)) >> 15) * (((((((v_x1_u32 * ((int32_t) CalibParam.dig_H6)) >> 10) *
-  //                                        (((v_x1_u32 * ((int32_t) CalibParam.dig_H3)) >> 11) +
-  //                                         ((int32_t) 32768))) >> 10) + ((int32_t) 2097152)) *
-  //                                     ((int32_t) CalibParam.dig_H2) + 8192) >> 14));
-  // v_x1_u32 = (v_x1_u32 - (((((v_x1_u32 >> 15) * (v_x1_u32 >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
-  // v_x1_u32 = (v_x1_u32 < 0 ? 0 : v_x1_u32);
-  // v_x1_u32 = (v_x1_u32 > 419430400 ? 419430400 : v_x1_u32);
-  // v_x1_u32 = (v_x1_u32 >> 12);
+  v_x1_u32 = (((((adc_H << 14) - (((int32_t) CalibParam.dig_H4) << 20) - (((int32_t) CalibParam.dig_H5) * v_x1_u32)) +
+                ((int32_t) 16384)) >> 15) * (((((((v_x1_u32 * ((int32_t) CalibParam.dig_H6)) >> 10) *
+                                                 (((v_x1_u32 * ((int32_t) CalibParam.dig_H3)) >> 11) +
+                                                  ((int32_t) 32768))) >> 10) + ((int32_t) 2097152)) *
+                                              ((int32_t) CalibParam.dig_H2) + 8192) >> 14));
+  v_x1_u32 = (v_x1_u32 - (((((v_x1_u32 >> 15) * (v_x1_u32 >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
+  v_x1_u32 = (v_x1_u32 < 0 ? 0 : v_x1_u32);
+  v_x1_u32 = (v_x1_u32 > 419430400 ? 419430400 : v_x1_u32);
+  v_x1_u32 = (uint32_t) (v_x1_u32 >> 12);
 
-//  v_x1_u32 = (((((adc_H << 14) - (((int32_t) CalibParam.dig_H4) << 20) - (((int32_t) CalibParam.dig_H5) * v_x1_u32)) +
-//                ((int32_t) 16384)) >> 15) * (((((((v_x1_u32 * ((int32_t) CalibParam.dig_H6)) >> 10) *
-//                                                 (((v_x1_u32 * ((int32_t) CalibParam.dig_H3)) >> 11) +
-//                                                  ((int32_t) 32768))) >> 10) + ((int32_t) 2097152)) *
-//                                              ((int32_t) CalibParam.dig_H2) + 8192) >> 14));
-//  v_x1_u32 = (v_x1_u32 - (((((v_x1_u32 >> 15) * (v_x1_u32 >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
-//  v_x1_u32 = (v_x1_u32 < 0 ? 0 : v_x1_u32);
-//  v_x1_u32 = (v_x1_u32 > 419430400 ? 419430400 : v_x1_u32);
-//  v_x1_u32 = (uint32_t) (v_x1_u32 >> 12);
 
-  //form documentation
- v_x1_u32 = (((int32_t) adc_H) - 76800);
-
- v_x1_u32 = (adc_H - (((int32_t) CalibParam.dig_H4) * 64 + ((int32_t) CalibParam.dig_H5) / 16384 * v_x1_u32)) *
-            (((int32_t) CalibParam.dig_H2) / 65536 * (1.0 + ((int32_t) CalibParam.dig_H6) / 67108864 * v_x1_u32 *
-                                                              (1 + ((int32_t) CalibParam.dig_H3) / 67108864 *
-                                                                     v_x1_u32)));
- v_x1_u32 = v_x1_u32 * (1 - ((int32_t) CalibParam.dig_H1) * v_x1_u32 / 524288);
- if (v_x1_u32 > 100)
-   v_x1_u32 = 100;
- else if (v_x1_u32 < 0)
-   v_x1_u32 = 0;
 #if showDebugDataBME280 == 1
   slUART_WriteString("BME280_CompensateH: ");
   slUART_LogBinary((uint8_t) (v_x1_u32 & 0xFF));
