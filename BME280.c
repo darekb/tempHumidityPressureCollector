@@ -278,7 +278,7 @@ int32_t BME280_CompensateT(int32_t adc_T) {
     slUART_LogBinary((uint8_t) ((T >> 16) & 0xFF));
     slUART_LogBinary((uint8_t) ((T >> 24)));
 #endif
-    return T;
+    return (int32_t)T;
 }
 
 // Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
