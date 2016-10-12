@@ -263,80 +263,80 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of �5123� equals 51.23 DegC.
 int32_t BME280_CompensateT(int32_t adc_T) {
-    int32_t var1, var2, T;
+  int32_t var1, var2, T;
 
-    var1 = ((((adc_T >> 3) - ((int32_t) CalibParam.dig_T1 << 1))) * ((int32_t) CalibParam.dig_T2)) >> 11;
-    var2 = (((((adc_T >> 4) - ((int32_t) CalibParam.dig_T1)) * ((adc_T >> 4) - ((int32_t) CalibParam.dig_T1))) >> 12) *
-            ((int32_t) CalibParam.dig_T3)) >> 14;
-    t_fine = var1 + var2;
-    T = (t_fine * 5 + 128) >> 8;
+  var1 = ((((adc_T >> 3) - ((int32_t) CalibParam.dig_T1 << 1))) * ((int32_t) CalibParam.dig_T2)) >> 11;
+  var2 = (((((adc_T >> 4) - ((int32_t) CalibParam.dig_T1)) * ((adc_T >> 4) - ((int32_t) CalibParam.dig_T1))) >> 12) *
+          ((int32_t) CalibParam.dig_T3)) >> 14;
+  t_fine = var1 + var2;
+  T = (t_fine * 5 + 128) >> 8;
 
 #if showDebugDataBME280 == 1
-    slUART_WriteString("BME280_CompensateT: ");
-    slUART_LogBinary((uint8_t) (T & 0xFF));
-    slUART_LogBinary((uint8_t) ((T >> 8) & 0xFF));
-    slUART_LogBinary((uint8_t) ((T >> 16) & 0xFF));
-    slUART_LogBinary((uint8_t) ((T >> 24)));
+  slUART_WriteString("BME280_CompensateT: ");
+  slUART_LogBinary((uint8_t) (T & 0xFF));
+  slUART_LogBinary((uint8_t) ((T >> 8) & 0xFF));
+  slUART_LogBinary((uint8_t) ((T >> 16) & 0xFF));
+  slUART_LogBinary((uint8_t) ((T >> 24)));
 #endif
-    return (int32_t)T;
+  return (int32_t) T;
 }
 
 // Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
 // Output value of �24674867� represents 24674867/256 = 96386.2 Pa = 963.862 hPa
 uint32_t BME280_CompensateP(int32_t adc_P) {
-    int64_t var1, var2, p;
+  int64_t var1, var2, p;
 
-    var1 = ((int64_t) t_fine) - 128000;
-    var2 = var1 * var1 * (int64_t) CalibParam.dig_P6;
-    var2 = var2 + ((var1 * (int64_t) CalibParam.dig_P5) << 17);
-    var2 = var2 + (((int64_t) CalibParam.dig_P4) << 35);
-    var1 = ((var1 * var1 * (int64_t) CalibParam.dig_P3) >> 8) + ((var1 * (int64_t) CalibParam.dig_P2) << 12);
-    var1 = (((((int64_t) 1) << 47) + var1)) * ((int64_t) CalibParam.dig_P1) >> 33;
+  var1 = ((int64_t) t_fine) - 128000;
+  var2 = var1 * var1 * (int64_t) CalibParam.dig_P6;
+  var2 = var2 + ((var1 * (int64_t) CalibParam.dig_P5) << 17);
+  var2 = var2 + (((int64_t) CalibParam.dig_P4) << 35);
+  var1 = ((var1 * var1 * (int64_t) CalibParam.dig_P3) >> 8) + ((var1 * (int64_t) CalibParam.dig_P2) << 12);
+  var1 = (((((int64_t) 1) << 47) + var1)) * ((int64_t) CalibParam.dig_P1) >> 33;
 
-    if (var1 == 0)
-        return 0;    //avoid exception caused by division by zero
+  if (var1 == 0)
+    return 0;    //avoid exception caused by division by zero
 
-    p = 1048576 - adc_P;
-    p = (((p << 31) - var2) * 3125) / var1;
-    var1 = (((int64_t) CalibParam.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-    var2 = (((int64_t) CalibParam.dig_P8) * p) >> 19;
-    p = ((p + var1 + var2) >> 8) + (((int64_t) CalibParam.dig_P7) << 4);
+  p = 1048576 - adc_P;
+  p = (((p << 31) - var2) * 3125) / var1;
+  var1 = (((int64_t) CalibParam.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
+  var2 = (((int64_t) CalibParam.dig_P8) * p) >> 19;
+  p = ((p + var1 + var2) >> 8) + (((int64_t) CalibParam.dig_P7) << 4);
 
 #if showDebugDataBME280 == 1
-    slUART_WriteString("BME280_CompensateP: ");
-    slUART_LogBinary((uint8_t) (p & 0xFF));
-    slUART_LogBinary((uint8_t) ((p >> 8) & 0xFF));
-    slUART_LogBinary((uint8_t) ((p >> 16) & 0xFF));
-    slUART_LogBinary((uint8_t) ((p >> 24)));
+  slUART_WriteString("BME280_CompensateP: ");
+  slUART_LogBinary((uint8_t) (p & 0xFF));
+  slUART_LogBinary((uint8_t) ((p >> 8) & 0xFF));
+  slUART_LogBinary((uint8_t) ((p >> 16) & 0xFF));
+  slUART_LogBinary((uint8_t) ((p >> 24)));
 #endif
-    return (uint32_t) p;
+  return (uint32_t) p;
 }
 
 
 // Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
 // Output value of �47445� represents 47445/1024 = 46.333 %RH
 uint32_t BME280_CompensateH(int32_t adc_H) {
-    int32_t v_x1_u32r;
+  int32_t v_x1_u32r;
 
-    v_x1_u32r = (t_fine - ((int32_t) 76800));
-    v_x1_u32r = (
-            ((((adc_H << 14) - (((int32_t) CalibParam.dig_H4) << 20) - (((int32_t) CalibParam.dig_H5) * v_x1_u32r)) +
-              ((int32_t) 16384)) >> 15) * (((((((v_x1_u32r * ((int32_t) CalibParam.dig_H6)) >> 10) *
-                                               (((v_x1_u32r * ((int32_t) CalibParam.dig_H3)) >> 11) +
-                                                ((int32_t) 32768))) >> 10) + ((int32_t) 2097152)) *
-                                            ((int32_t) CalibParam.dig_H2) + 8192) >> 14));
-    v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
-    v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
-    v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
-    v_x1_u32r = (v_x1_u32r >> 12);
+  v_x1_u32r = (t_fine - ((int32_t) 76800));
+  v_x1_u32r = (
+      ((((adc_H << 14) - (((int32_t) CalibParam.dig_H4) << 20) - (((int32_t) CalibParam.dig_H5) * v_x1_u32r)) +
+        ((int32_t) 16384)) >> 15) * (((((((v_x1_u32r * ((int32_t) CalibParam.dig_H6)) >> 10) *
+                                         (((v_x1_u32r * ((int32_t) CalibParam.dig_H3)) >> 11) +
+                                          ((int32_t) 32768))) >> 10) + ((int32_t) 2097152)) *
+                                      ((int32_t) CalibParam.dig_H2) + 8192) >> 14));
+  v_x1_u32r = (v_x1_u32r - (((((v_x1_u32r >> 15) * (v_x1_u32r >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
+  v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
+  v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
+  v_x1_u32r = (v_x1_u32r >> 12);
 #if showDebugDataBME280 == 1
-    slUART_WriteString("BME280_CompensateH: ");
-    slUART_LogBinary((uint8_t) (v_x1_u32r & 0xFF));
-    slUART_LogBinary((uint8_t) ((v_x1_u32r >> 8) & 0xFF));
-    slUART_LogBinary((uint8_t) ((v_x1_u32r >> 16) & 0xFF));
-    slUART_LogBinary((uint8_t) ((v_x1_u32r >> 24)));
+  slUART_WriteString("BME280_CompensateH: ");
+  slUART_LogBinary((uint8_t) (v_x1_u32r & 0xFF));
+  slUART_LogBinary((uint8_t) ((v_x1_u32r >> 8) & 0xFF));
+  slUART_LogBinary((uint8_t) ((v_x1_u32r >> 16) & 0xFF));
+  slUART_LogBinary((uint8_t) ((v_x1_u32r >> 24)));
 #endif
-    return (uint32_t) v_x1_u32r;
+  return (uint32_t) v_x1_u32r;
 }
 
 /**********************************************************************
