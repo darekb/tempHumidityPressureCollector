@@ -268,7 +268,6 @@ int32_t BME280_CompensateT(int32_t adc_T) {
   t_fine = var1 + var2;
   T = (t_fine * 5 + 128) >> 8;
 
-  return T;
 
 #if showDebugDataBME280 == 1
   slUART_WriteString("BME280_CompensateT: ");
@@ -277,7 +276,7 @@ int32_t BME280_CompensateT(int32_t adc_T) {
   slUART_LogBinary((uint8_t) ((T >> 16) & 0xFF));
   slUART_LogBinary((uint8_t) ((T >> 24)));
 #endif
-  return T;
+  return (int32_t)T;
 }
 
 // Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
@@ -347,7 +346,7 @@ uint32_t BME280_CompensateH(int32_t adc_H) {
   slUART_LogBinary((uint8_t) ((v_x1_u32 >> 16) & 0xFF));
   slUART_LogBinary((uint8_t) ((v_x1_u32 >> 24)));
 #endif
-  return v_x1_u32;
+  return (uint32_t)v_x1_u32;
 }
 
 /**********************************************************************
