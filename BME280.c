@@ -283,20 +283,20 @@ int32_t BME280_CompensateT(int32_t adc_T) {
 uint32_t BME280_CompensateP(int32_t adc_P) {
   int32_t var1, var2, p;
 
- var1 = (int64_t)t_fine - 128000;
- var2 = var1 * var1 * (int64_t)CalibParam.dig_P6;
- var2 = var2 + ((var1 * (int64_t)CalibParam.dig_P5) << 17);
- var2 = var2 + (((int64_t)CalibParam.dig_P4) << 35);
- var1 = ((var1 * var1 * (int64_t)CalibParam.dig_P3) >> 8) + ((var1 * (int64_t)CalibParam.dig_P2) << 12);
- var1 = (((((int64_t)1) << 47) + var1)) * ((int64_t)CalibParam.dig_P1) >> 33;
- if (var1 == 0) { return 0; }                                      // Don't divide by zero.
- p  = 1048576 - adc_P;
- p = (((p << 31) - var2) * 3125)/var1;
- var1 = (((int64_t)CalibParam.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
- var2 = (((int64_t)CalibParam.dig_P8) * p) >> 19;
- p = ((p + var1 + var2) >> 8) + (((int64_t)CalibParam.dig_P7) << 4);
+  var1 = (int64_t) t_fine - 128000;
+  var2 = var1 * var1 * (int64_t) CalibParam.dig_P6;
+  var2 = var2 + ((var1 * (int64_t) CalibParam.dig_P5) << 17);
+  var2 = var2 + (((int64_t) CalibParam.dig_P4) << 35);
+  var1 = ((var1 * var1 * (int64_t) CalibParam.dig_P3) >> 8) + ((var1 * (int64_t) CalibParam.dig_P2) << 12);
+  var1 = (((((int64_t) 1) << 47) + var1)) * ((int64_t) CalibParam.dig_P1) >> 33;
+  if (var1 == 0) { return 0; }                                      // Don't divide by zero.
+  p = 1048576 - adc_P;
+  p = (((p << 31) - var2) * 3125) / var1;
+  var1 = (((int64_t) CalibParam.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
+  var2 = (((int64_t) CalibParam.dig_P8) * p) >> 19;
+  p = ((p + var1 + var2) >> 8) + (((int64_t) CalibParam.dig_P7) << 4);
 
- p = ((uint32_t)p)/256.0;
+  p = ((uint32_t) p) / 256.0;
 
 
 #if showDebugDataBME280 == 1
@@ -323,7 +323,7 @@ uint32_t BME280_CompensateH(int32_t adc_H) {
   v_x1_u32 = (v_x1_u32 - (((((v_x1_u32 >> 15) * (v_x1_u32 >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
   v_x1_u32 = (v_x1_u32 < 0 ? 0 : v_x1_u32);
   v_x1_u32 = (v_x1_u32 > 419430400 ? 419430400 : v_x1_u32);
-  v_x1_u32 = (v_x1_u32 >> 12)/1024;
+  v_x1_u32 = (v_x1_u32 >> 12) / 1024;
 #if showDebugDataBME280 == 1
   slUART_WriteString("BME280_CompensateH: ");
   slUART_LogBinary((uint8_t) (v_x1_u32 & 0xFF));
@@ -331,7 +331,7 @@ uint32_t BME280_CompensateH(int32_t adc_H) {
   slUART_LogBinary((uint8_t) ((v_x1_u32 >> 16) & 0xFF));
   slUART_LogBinary((uint8_t) ((v_x1_u32 >> 24)));
 #endif
-  return (uint32_t)v_x1_u32;
+  return (uint32_t) v_x1_u32;
 }
 
 /**********************************************************************
