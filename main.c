@@ -60,7 +60,6 @@ int main(void) {
   slUART_WriteString(TEST);
   slUART_WriteString("\r\n");
 #endif
-  testDiv();
   slUART_WriteString("Start.\r\n");
 
   //from BME280 lib
