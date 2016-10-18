@@ -51,7 +51,8 @@ void testDiv(void){
 int main(void) {
   DDRB |= LED;
   int32_t temperature;
-  uint32_t pressure, humidity;
+  uint32_t humidity;
+  float pressure;
   char req[100];
   slI2C_Init();
   slUART_SimpleTransmitInit();
@@ -62,8 +63,8 @@ int main(void) {
 #endif
   slUART_WriteString("Start.\r\n");
   char t2[100];
-  float test = (1/3)*1000;
-  sprintf(t2,"test: %d", test);
+  float test = ((float)1/3)*1000;
+  sprintf(t2,"test: %u", test);
   slUART_WriteString(t2);
   slUART_WriteString("\r\n");
 
@@ -96,6 +97,7 @@ int main(void) {
     sprintf(req, "Hum: %u ", humidity);
     slUART_WriteString(req);
 
+    //dtostrf((double)(pressure, 9, 3, req);
     sprintf(req, "Pres: %u \r\n", pressure);
     slUART_WriteString(req);
 //    sprintf(req, "Temp: %d.%02u Hum: %u.%02u Press: %u",

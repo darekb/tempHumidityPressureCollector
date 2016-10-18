@@ -25,6 +25,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 
 #include <avr/io.h>
 #include <string.h>
+#include <stdio.h>
 #include "slI2C.h"
 #include "slUart.h"
 #include "BME280.h"
@@ -260,8 +261,6 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of �5123� equals 51.23 DegC.
 int32_t BME280_CompensateT(int32_t adc_T) {
   int32_t var1, var2, T;
-
-
   var1 = ((((adc_T >> 3) - ((int32_t) CalibParam.dig_T1 << 1))) * ((int32_t) CalibParam.dig_T2)) >> 11;
   var2 = (((((adc_T >> 4) - ((int32_t) CalibParam.dig_T1)) * ((adc_T >> 4) - ((int32_t) CalibParam.dig_T1))) >> 12) *
           ((int32_t) CalibParam.dig_T3)) >> 14;
@@ -280,23 +279,23 @@ int32_t BME280_CompensateT(int32_t adc_T) {
 
 // Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
 // Output value of �24674867� represents 24674867/256 = 96386.2 Pa = 963.862 hPa
-uint32_t BME280_CompensateP(int32_t adc_P) {
-  uint64_t var1, var2, p;
-
-  var1 = (uint64_t) t_fine - 128000;
-  var2 = var1 * var1 * (uint64_t) CalibParam.dig_P6;
-  var2 = var2 + ((var1 * (uint64_t) CalibParam.dig_P5) << 17);
-  var2 = var2 + (((uint64_t) CalibParam.dig_P4) << 35);
-  var1 = ((var1 * var1 * (uint64_t) CalibParam.dig_P3) >> 8) + ((var1 * (uint64_t) CalibParam.dig_P2) << 12);
-  var1 = (((((uint64_t) 1) << 47) + var1)) * ((uint64_t) CalibParam.dig_P1) >> 33;
+float BME280_CompensateP(int32_t adc_P) {
+  int64_t var1, var2, p;
+  float final;
+  var1 = (int64_t) t_fine - 128000;
+  var2 = var1 * var1 * (int64_t) CalibParam.dig_P6;
+  var2 = var2 + ((var1 * (int64_t) CalibParam.dig_P5) << 17);
+  var2 = var2 + (((int64_t) CalibParam.dig_P4) << 35);
+  var1 = ((var1 * var1 * (int64_t) CalibParam.dig_P3) >> 8) + ((var1 * (int64_t) CalibParam.dig_P2) << 12);
+  var1 = (((((int64_t) 1) << 47) + var1)) * ((int64_t) CalibParam.dig_P1) >> 33;
   if (var1 == 0) { return 0; }                                      // Don't divide by zero.
   p = 1048576 - adc_P;
   p = (((p << 31) - var2) * 3125) / var1;
-  var1 = (((uint64_t) CalibParam.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
-  var2 = (((uint64_t) CalibParam.dig_P8) * p) >> 19;
-  p = ((p + var1 + var2) >> 8) + (((uint64_t) CalibParam.dig_P7) << 4);
+  var1 = (((int64_t) CalibParam.dig_P9) * (p >> 13) * (p >> 13)) >> 25;
+  var2 = (((int64_t) CalibParam.dig_P8) * p) >> 19;
+  p = ((p + var1 + var2) >> 8) + (((int64_t) CalibParam.dig_P7) << 4);
 
-  p = p / 256.0;
+  final = ((uint32_t)p)/256.0;
 
 
 #if showDebugDataBME280 == 1
@@ -306,7 +305,7 @@ uint32_t BME280_CompensateP(int32_t adc_P) {
   slUART_LogBinary((uint8_t) ((p >> 16) & 0xFF));
   slUART_LogBinary((uint8_t) ((p >> 24)));
 #endif
-  return (uint32_t) p;
+  return final;
 }
 
 // Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
@@ -323,7 +322,7 @@ uint32_t BME280_CompensateH(int32_t adc_H) {
   v_x1_u32 = (v_x1_u32 - (((((v_x1_u32 >> 15) * (v_x1_u32 >> 15)) >> 7) * ((int32_t) CalibParam.dig_H1)) >> 4));
   v_x1_u32 = (v_x1_u32 < 0 ? 0 : v_x1_u32);
   v_x1_u32 = (v_x1_u32 > 419430400 ? 419430400 : v_x1_u32);
-  v_x1_u32 = ((v_x1_u32 >> 12)/1024) *100;
+  v_x1_u32 = (v_x1_u32 >> 12);
 #if showDebugDataBME280 == 1
   slUART_WriteString("BME280_CompensateH: ");
   slUART_LogBinary((uint8_t) (v_x1_u32 & 0xFF));
@@ -341,9 +340,9 @@ Parameters:	t - Pointer to variable in which to write the temperature
 			p - Pointer to variable in which to write the pressure
 			h - Pointer to variable in which to write the humidity
 **********************************************************************/
-uint8_t BME280_ReadAll(int32_t *t, uint32_t *p, uint32_t *h) {
+uint8_t BME280_ReadAll(int32_t *t, float *p, uint32_t *h) {
   uint8_t Buff[8] = {0};
-  int32_t UncT, UncP, UncH;
+  uint32_t UncT, UncP, UncH;
   uint8_t cnt;
 
   if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8)) {
@@ -359,7 +358,8 @@ uint8_t BME280_ReadAll(int32_t *t, uint32_t *p, uint32_t *h) {
     return 1;
   }
 
-  UncP = (int32_t) (((uint32_t) Buff[0] << 12) | ((uint32_t) Buff[1] << 4) | ((uint32_t) Buff[2] >> 4));
+  //UncP = (int32_t) (((uint32_t) Buff[0] << 12) | ((uint32_t) Buff[1] << 4) | ((uint32_t) Buff[2] >> 4));
+  UncP = ((Buff[0] << 12) | ( Buff[1] << 4) | ( Buff[2] >> 4));
 
   // UncP = ((uint32_t) Buff[0] << 16) | ((uint16_t) Buff[1] << 8) | Buff[2];
   // UncP >>= 4;
