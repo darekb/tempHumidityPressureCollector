@@ -91,7 +91,7 @@ void slI2C_SetBusSpeed(uint16_t speed) {
 void slI2C_Init() {
   slI2C_statusFlags |= (1 << slI2C_Init_Called);
   TWCR = (1 << TWEA) | (1 << TWEN);
-  slI2C_SetBusSpeed(I2CBUSCLOCK / 100);
+  slI2C_SetBusSpeed();
 }
 
 uint8_t slI2C_Start() {
