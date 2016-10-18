@@ -7,7 +7,7 @@
 #ifndef F_CPU
 #define F_CPU 16000000UL
 #endif
-  
+
 
 #include "main.h"
 #include "slI2C.h"
@@ -17,16 +17,18 @@
 
 #define WDIFr
 #ifdef WDIFr
-   static void __init3( void ) __attribute__ (( section( ".init3" ), naked, used ));
-   static void __init3( void )
-   {
-       /* wyłączenie watchdoga (w tych mikrokontrolerach, w których watchdog
-        * ma możliwość generowania przerwania pozostaje on też aktywny po
-        * resecie) */
-       MCUSR = 0;
-       WDTCSR = (1<<WDCE) | (1<<WDE);
-       WDTCSR = 0;
-   }
+
+static void __init3(void) __attribute__ (( section( ".init3" ), naked, used ));
+
+static void __init3(void) {
+  /* wyłączenie watchdoga (w tych mikrokontrolerach, w których watchdog
+   * ma możliwość generowania przerwania pozostaje on też aktywny po
+   * resecie) */
+  MCUSR = 0;
+  WDTCSR = (1 << WDCE) | (1 << WDE);
+  WDTCSR = 0;
+}
+
 #endif
 
 //TODO średnia wleczone dla pomiarów
@@ -45,7 +47,8 @@ int main(void) {
   slUART_SimpleTransmitInit();
   slUART_WriteString("Start.\r\n");
 
-  if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED, BME280_TSB_1000)) {
+  if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED,
+                  BME280_TSB_1000)) {
     slUART_WriteString("BMP280 init error.\r\n");
   } else {
     slUART_WriteString("BMP280 init done.\r\n");

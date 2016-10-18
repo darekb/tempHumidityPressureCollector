@@ -296,7 +296,7 @@ float BME280_CompensateP(int32_t adc_P) {
   var2 = (((int64_t) CalibParam.dig_P8) * p) >> 19;
   p = ((p + var1 + var2) >> 8) + (((int64_t) CalibParam.dig_P7) << 4);
 
-  final = ((uint32_t)p)/256.0;
+  final = ((uint32_t) p) / 256.0;
 #if showDebugDataBME280 == 1
   slUART_WriteString("BME280_CompensateP: ");
   slUART_LogBinary((uint8_t) (p & 0xFF));
@@ -358,7 +358,7 @@ uint8_t BME280_ReadAll(int32_t *t, float *p, uint32_t *h) {
   }
 
   //UncP = (int32_t) (((uint32_t) Buff[0] << 12) | ((uint32_t) Buff[1] << 4) | ((uint32_t) Buff[2] >> 4));
-  UncP = ((Buff[0] << 12) | ( Buff[1] << 4) | ( Buff[2] >> 4));
+  UncP = ((Buff[0] << 12) | (Buff[1] << 4) | (Buff[2] >> 4));
 
   // UncP = ((uint32_t) Buff[0] << 16) | ((uint16_t) Buff[1] << 8) | Buff[2];
   // UncP >>= 4;
