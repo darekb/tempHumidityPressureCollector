@@ -85,15 +85,19 @@ uint8_t slI2C_SetSLA(uint8_t byte) {
     return I2C_Error;
 }
 
+// void slI2C_SetBusSpeed(uint16_t speed) {
+//     uint8_t prescaler = 0;
+//     speed = (F_CPU / speed / 100 - 16) / 2;
+//     while (speed > 255) {
+//         prescaler++;
+//         speed = speed / 4;
+//     };
+//     TWSR = (TWSR & ((1 << TWPS1) | (1 << TWPS0))) | prescaler;
+//     TWBR = speed;
+// }
+
 void slI2C_SetBusSpeed(uint16_t speed) {
-    uint8_t prescaler = 0;
-    speed = (F_CPU / speed / 100 - 16) / 2;
-    while (speed > 255) {
-        prescaler++;
-        speed = speed / 4;
-    };
-    TWSR = (TWSR & ((1 << TWPS1) | (1 << TWPS0))) | prescaler;
-    TWBR = speed;
+    TWBR = ((F_CPU / I2CBUSCLOCK) - 16) / 2;
 }
 
 void slI2C_Init() {
