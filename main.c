@@ -51,7 +51,8 @@ void testDiv(void){
 int main(void) {
   DDRB |= LED;
   int32_t temperature;
-  uint32_t pressure, humidity;
+  uint32_t humidity;
+  float pressure;
   char req[100];
   slI2C_Init();
   slUART_SimpleTransmitInit();
@@ -60,8 +61,12 @@ int main(void) {
   slUART_WriteString(TEST);
   slUART_WriteString("\r\n");
 #endif
-  testDiv();
   slUART_WriteString("Start.\r\n");
+  char t2[100];
+  float test = ((float)1/3)*1000;
+  sprintf(t2,"test: %u", test);
+  slUART_WriteString(t2);
+  slUART_WriteString("\r\n");
 
   //from BME280 lib
   //if (BME280_Init(BME280_OS_T_16, BME280_OS_P_16, BME280_OS_H_16, BME280_FILTER_16, BME280_MODE_NORMAL, BME280_TSB_62)) {
@@ -71,8 +76,6 @@ int main(void) {
 
   //from documentation for weather measurment
   if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED, BME280_TSB_1000)) {
-
-
     slUART_WriteString("BMP280 init error.\r\n");
   } else {
     slUART_WriteString("BMP280 init done.\r\n");
@@ -90,9 +93,12 @@ int main(void) {
     }
     sprintf(req, "Temp: %d ", temperature);
     slUART_WriteString(req);
-    sprintf(req, "Hum: %d ", humidity);
+
+    sprintf(req, "Hum: %u ", humidity);
     slUART_WriteString(req);
-    sprintf(req, "Pres: %d \r\n", pressure);
+
+    //dtostrf((double)(pressure, 9, 3, req);
+    sprintf(req, "Pres: %u \r\n", pressure);
     slUART_WriteString(req);
 //    sprintf(req, "Temp: %d.%02u Hum: %u.%02u Press: %u",
 //            temperature / 100, temperature % 100, //C
