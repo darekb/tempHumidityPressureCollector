@@ -122,34 +122,10 @@ uint8_t I2C_ReadData(uint8_t device_addr, uint8_t register_addr, uint8_t *data, 
 }
 
 
-/**********************************************************************
-Return: 0 	  - Everything OK
-		non 0 - Failed
-Parameters:	os_t - Temperature Oversampling
-			os_p - Pressure Oversampling
-			os_h - Humidity Oversampling
-			filter - Filter coefficient
-			mode - Mode (Sleep/Forced/Normal)
-			t_sb - Standby time between conversions
-**********************************************************************/
-uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
-                    uint8_t filter, uint8_t mode, uint8_t t_sb) {
-  uint8_t ID = 0;
-  uint8_t Buff[26] = {0};
-  uint8_t Temp;
+uint8_t BME280_ReadCalibrationData(){
   uint8_t cnt;
-
-  if (I2C_ReadData(BME280_I2C_ADDR, ID_REG, &ID, 1)) {
-    return 1;
-  }
-#if showDebugDataBME280 == 1
-  slUART_WriteString("ID:  ");
-  slUART_LogBinary(ID);
-#endif
-  if (ID != 0x60)
-    return 1;
-
-  if (I2C_ReadData(BME280_I2C_ADDR, CALIB_00_REG, Buff, 26)) {
+  uint8_t Buff[26] = {0};
+  if (!I2C_ReadData(BME280_I2C_ADDR, CALIB_00_REG, Buff, 26)) {
     return 1;
   }
 #if showDebugDataBME280 == 1
@@ -160,7 +136,6 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
       slUART_LogBinary(Buff[cnt]);
   }
 #endif
-  //ToDo: test im_update bit
   CalibParam.dig_T1 = (Buff[1] << 8) | Buff[0];
   CalibParam.dig_T2 = (Buff[3] << 8) | Buff[2];
   CalibParam.dig_T3 = (Buff[5] << 8) | Buff[4];
@@ -178,7 +153,7 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
   CalibParam.dig_H1 = Buff[24];
 
   memset(Buff, 0, 7);
-  if (I2C_ReadData(BME280_I2C_ADDR, CALIB_26_REG, Buff, 7)) {
+  if (!I2C_ReadData(BME280_I2C_ADDR, CALIB_26_REG, Buff, 7)) {
     return 1;
   }
 #if showDebugDataBME280 == 1
@@ -238,24 +213,56 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
   slUART_WriteString("CalibParam.dig_H6: ");
   slUART_LogBinary(CalibParam.dig_H6);
 #endif
+  return 0;
+}
+
+
+/**********************************************************************
+Return: 0 	  - Everything OK
+		non 0 - Failed
+Parameters:	os_t - Temperature Oversampling
+			os_p - Pressure Oversampling
+			os_h - Humidity Oversampling
+			filter - Filter coefficient
+			mode - Mode (Sleep/Forced/Normal)
+			t_sb - Standby time between conversions
+**********************************************************************/
+uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
+                    uint8_t filter, uint8_t mode, uint8_t t_sb) {
+  uint8_t ID = 0;
+  uint8_t Temp;
+
+  if (!I2C_ReadData(BME280_I2C_ADDR, ID_REG, &ID, 1)) {
+    return 1;
+  }
+#if showDebugDataBME280 == 1
+  slUART_WriteString("ID:  ");
+  slUART_LogBinary(ID);
+#endif
+  if (ID != 0x60)
+    return 1;
+  if(!BME280_ReadCalibrationData()){
+    return 1;
+  }
 
   Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
-  if (I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1)) {
+  if (!I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1)) {
     return 1;
   }
 
   Temp = os_h & 0x07;                                                //hum (0x05)
-  if (I2C_WriteData(BME280_I2C_ADDR, CTRL_HUM_REG, &Temp, 1)) {
+  if (!I2C_WriteData(BME280_I2C_ADDR, CTRL_HUM_REG, &Temp, 1)) {
     return 1;
   }
 
   Temp = (os_t << 5) | ((os_p & 0x07) << 2) | (mode & 0x03);        //meas (0xB7)
-  if (I2C_WriteData(BME280_I2C_ADDR, CTRL_MEAS_REG, &Temp, 1)) {
+  if (!I2C_WriteData(BME280_I2C_ADDR, CTRL_MEAS_REG, &Temp, 1)) {
     return 1;
   }
 
   return 0;
 }
+
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of �5123� equals 51.23 DegC.
 int32_t BME280_CompensateT(int32_t adc_T) {
@@ -342,8 +349,10 @@ uint8_t BME280_ReadAll(int32_t *t, float *p, uint32_t *h) {
   uint8_t Buff[8] = {0};
   uint32_t UncT, UncP, UncH;
   uint8_t cnt;
-
-  if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8)) {
+  if(!BME280_ReadCalibrationData()){
+    return 1;
+  }
+  if (!I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8)) {
 
 #if showDebugDataBME280 == 1
     for (cnt = 0; cnt < 7; cnt++) {
@@ -404,7 +413,7 @@ uint8_t BME280_SetMode(uint8_t mode) {
   uint8_t RegVal = 0;
 
   mode &= 0x03;
-  if (I2C_ReadData(BME280_I2C_ADDR, CTRL_MEAS_REG, &RegVal, 1)) {
+  if (!I2C_ReadData(BME280_I2C_ADDR, CTRL_MEAS_REG, &RegVal, 1)) {
     return 1;
   }
   RegVal &= 0xFC;
