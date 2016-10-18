@@ -79,19 +79,11 @@ uint8_t slI2C_SetSLA(uint8_t byte) {
   return I2C_Error;
 }
 
-
-void slI2C_SetBusSpeed() {
-#if F_CPU < 3600000UL
-  TWBR = 10;//TWBR must be grather than 10
-#else
-  TWBR = ((F_CPU / I2CBUSCLOCK) - 16) / 2;
-#endif
-}
-
 void slI2C_Init() {
   slI2C_statusFlags |= (1 << slI2C_Init_Called);
   TWCR = (1 << TWEA) | (1 << TWEN);
-  slI2C_SetBusSpeed();
+  //set I2C bus speed
+  TWBR = __TWBR;
 }
 
 uint8_t slI2C_Start() {
