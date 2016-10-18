@@ -161,19 +161,19 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
   }
 #endif
   //ToDo: test im_update bit
-  CalibParam.dig_T1 = (Buff[1] << 8) | Buff[0]);
-  CalibParam.dig_T2 = (Buff[3] << 8) | Buff[2]);
-  CalibParam.dig_T3 = (Buff[5] << 8) | Buff[4]);
+  CalibParam.dig_T1 = (Buff[1] << 8) | Buff[0];
+  CalibParam.dig_T2 = (Buff[3] << 8) | Buff[2];
+  CalibParam.dig_T3 = (Buff[5] << 8) | Buff[4];
 
-  CalibParam.dig_P1 = (Buff[7] << 8) | Buff[6]);
-  CalibParam.dig_P2 = (Buff[9] << 8) | Buff[8]);
-  CalibParam.dig_P3 = (Buff[11] << 8) | Buff[10]);
-  CalibParam.dig_P4 = (Buff[13] << 8) | Buff[12]);
-  CalibParam.dig_P5 = (Buff[15] << 8) | Buff[14]);
-  CalibParam.dig_P6 = (Buff[17] << 8) | Buff[16]);
-  CalibParam.dig_P7 = (Buff[19] << 8) | Buff[18]);
-  CalibParam.dig_P8 = (Buff[21] << 8) | Buff[20]);
-  CalibParam.dig_P9 = (Buff[23] << 8) | Buff[22]);
+  CalibParam.dig_P1 = (Buff[7] << 8) | Buff[6];
+  CalibParam.dig_P2 = (Buff[9] << 8) | Buff[8];
+  CalibParam.dig_P3 = (Buff[11] << 8) | Buff[10];
+  CalibParam.dig_P4 = (Buff[13] << 8) | Buff[12];
+  CalibParam.dig_P5 = (Buff[15] << 8) | Buff[14];
+  CalibParam.dig_P6 = (Buff[17] << 8) | Buff[16];
+  CalibParam.dig_P7 = (Buff[19] << 8) | Buff[18];
+  CalibParam.dig_P8 = (Buff[21] << 8) | Buff[20];
+  CalibParam.dig_P9 = (Buff[23] << 8) | Buff[22];
 
   CalibParam.dig_H1 = Buff[24];
 
@@ -190,10 +190,9 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
   }
 #endif
 
-  CalibParam.dig_H2 = (Buff[1] << 8) | Buff[0]);
+  CalibParam.dig_H2 = (Buff[1] << 8) | Buff[0];
   CalibParam.dig_H3 = Buff[2];
-  CalibParam.dig_H4 = (Buff[3] << 4) | (Buff[4] & 0x0F));
-  //CalibParam.dig_H5 = (Buff[5] << 4) | ((Buff[4] >> 4) & 0x0F);
+  CalibParam.dig_H4 = (Buff[3] << 4) | (Buff[4] & 0x0F);
   CalibParam.dig_H5 = (Buff[5] << 4) | ((Buff[4] >> 4) & 0x0F);
   CalibParam.dig_H6 = Buff[6];
 

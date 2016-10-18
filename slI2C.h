@@ -27,7 +27,6 @@ uint8_t I2C_Error;
 uint8_t slI2C_statusFlags;
 uint8_t slI2C_returnReadValue();
 uint8_t slI2C_SetSLA(uint8_t slaIn);
-void slI2C_SetBusSpeed(uint16_t speed);
 void slI2C_Init();
 uint8_t slI2C_Start();
 uint8_t slI2C_Stop();

@@ -80,7 +80,7 @@ uint8_t slI2C_SetSLA(uint8_t byte) {
 }
 
 
-void slI2C_SetBusSpeed(uint16_t speed) {
+void slI2C_SetBusSpeed() {
 #if F_CPU < 3600000UL
   TWBR = 10;//TWBR must be grather than 10
 #else
