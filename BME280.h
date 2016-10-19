@@ -97,7 +97,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
                     uint8_t filter, uint8_t mode, uint8_t t_sb);
 
-uint8_t BME280_ReadAll(int32_t *t, float *p, uint32_t *h);
+uint8_t BME280_ReadAll(int32_t *t, int64_t *p, uint32_t *h);
 
 uint8_t BME280_SetMode(uint8_t mode);
 

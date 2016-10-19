@@ -41,7 +41,7 @@ int main(void) {
   DDRB |= LED;
   int32_t temperature;
   uint32_t humidity;
-  float pressure;
+  int64_t pressure;
   char req[100];
   slI2C_Init();
   slUART_SimpleTransmitInit();
