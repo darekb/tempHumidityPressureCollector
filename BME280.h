@@ -41,6 +41,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #define CTRL_MEAS_REG     0xF4
 #define STATUS_REG        0xF3
 #define CTRL_HUM_REG      0xF2
+#define TEMP_DIG_ADDR  	  0x88
+#define PRESS_DIG_ADDR    0x8E
+#define HUM_DIG_ADDR1     0xA1
+#define HUM_DIG_ADDR2     0xE1
 
 //Device Address
 #define BME280_I2C_ADDR   0xEC  //0xEC or 0xEE
