@@ -120,37 +120,10 @@ uint8_t I2C_ReadData(uint8_t device_addr, uint8_t register_addr, uint8_t *data, 
   }
 }
 
-
-/**********************************************************************
-Return: 0 	  - Everything OK
-		non 0 - Failed
-Parameters:	os_t - Temperature Oversampling
-			os_p - Pressure Oversampling
-			os_h - Humidity Oversampling
-			filter - Filter coefficient
-			mode - Mode (Sleep/Forced/Normal)
-			t_sb - Standby time between conversions
-**********************************************************************/
-uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
-                    uint8_t filter, uint8_t mode, uint8_t t_sb) {
-  uint8_t ID = 0;
+uint8_t BME280_getCalibrationParameters(){
   uint8_t Buff[26] = {0};
-  uint8_t Temp;
   uint8_t cnt;
-
-  if (I2C_ReadData(BME280_I2C_ADDR, ID_REG, &ID, 1)) {
-    return 1;
-  }
-#if showDebugDataBME280 == 1
-  slUART_WriteString("ID:  ");
-  slUART_LogBinary(ID);
-#endif
-  if (ID != 0x60)
-    return 1;
-
   if (I2C_ReadData(BME280_I2C_ADDR, CALIB_00_REG, Buff, 26)) {
-    return 1;
-  }
 #if showDebugDataBME280 == 1
   for (cnt = 0; cnt < 25; cnt++) {
       slUART_WriteString("BME280_Init - Buff[");
@@ -159,6 +132,8 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
       slUART_LogBinary(Buff[cnt]);
   }
 #endif
+    return 1;
+  }
   //ToDo: test im_update bit
   CalibParam.dig_T1 = (uint16_t) ((uint16_t) ((uint8_t) Buff[1] << 8) | Buff[0]);
   CalibParam.dig_T2 = (int16_t) ((int16_t) ((int8_t) Buff[3] << 8) | Buff[2]);
@@ -178,8 +153,6 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
 
   memset(Buff, 0, 7);
   if (I2C_ReadData(BME280_I2C_ADDR, CALIB_26_REG, Buff, 7)) {
-    return 1;
-  }
 #if showDebugDataBME280 == 1
   for (cnt = 0; cnt < 6; cnt++) {
       slUART_WriteString("BME280_Init - Buff[");
@@ -188,6 +161,8 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
       slUART_LogBinary(Buff[cnt]);
   }
 #endif
+    return 1;
+  }
 
   CalibParam.dig_H2 = (int16_t) ((int16_t) ((int8_t) Buff[1] << 8) | Buff[0]);
   CalibParam.dig_H3 = Buff[2];
@@ -238,6 +213,36 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
   slUART_WriteString("CalibParam.dig_H6: ");
   slUART_LogBinary(CalibParam.dig_H6);
 #endif
+  return 0;
+}
+
+/**********************************************************************
+Return: 0 	  - Everything OK
+		non 0 - Failed
+Parameters:	os_t - Temperature Oversampling
+			os_p - Pressure Oversampling
+			os_h - Humidity Oversampling
+			filter - Filter coefficient
+			mode - Mode (Sleep/Forced/Normal)
+			t_sb - Standby time between conversions
+**********************************************************************/
+uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
+                    uint8_t filter, uint8_t mode, uint8_t t_sb) {
+  uint8_t ID = 0;
+  uint8_t Temp;
+
+  if (I2C_ReadData(BME280_I2C_ADDR, ID_REG, &ID, 1)) {
+#if showDebugDataBME280 == 1
+  slUART_WriteString("ID:  ");
+  slUART_LogBinary(ID);
+#endif
+    return 1;
+  }
+  if (ID != 0x60)
+    return 1;
+
+  BME280_getCalibrationParameters();
+  
 
   Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
   if (I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1)) {
