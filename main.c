@@ -3,6 +3,7 @@
 #include <util/delay.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #ifndef F_CPU
 #define F_CPU 16000000UL
@@ -20,10 +21,40 @@
 #define LED (1 << PB0)
 #define LED_TOG PORTB ^= LED
 
+uint8_t sendData(){
+  float temperature, humidity, pressure;
+  char req[100] = "";
+  char bufor[5] = "";
+
+  if (BME280_SetMode(BME280_MODE_FORCED)) {
+    slUART_WriteString("Sensor set forced mode error!\r\n");
+    return 1;
+  }
+  if (BME280_ReadAll(&temperature, &pressure, &humidity)) {
+    slUART_WriteString("Sensor read error!\r\n");
+    return 1;
+  }
+
+  strcat(req,"Temp: ");
+  dtostrf((float)temperature, 1, 2, bufor);
+  strcat(req, bufor);
+
+  strcat(req,"°C Hum: ");
+  dtostrf((float)humidity, 1, 2, bufor);
+  strcat(req, bufor);
+
+  strcat(req,"% Press: ");
+  dtostrf((float)pressure, 1, 2, bufor);
+  strcat(req, bufor);
+
+  slUART_WriteString(req);
+  slUART_WriteString("Pa\r\n");
+
+  return 0;
+}
+
 int main(void) {
   DDRB |= LED;
-  float temperature, humidity, pressure;
-  char req[100];
   slI2C_Init();
   slUART_SimpleTransmitInit();
   slUART_WriteString("Start.\r\n");
@@ -36,23 +67,9 @@ int main(void) {
   while (1) {
     LED_TOG;
     _delay_ms(100);
-    if (BME280_SetMode(BME280_MODE_FORCED)) {
-      slUART_WriteString("Sensor set forced mode error!\r\n");
-      return 1;
+    if(sendData()){
+      slUART_WriteString("Send data error.\r\n");
     }
-    if (BME280_ReadAll(&temperature, &pressure, &humidity)) {
-      slUART_WriteString("Sensor read error!\r\n");
-      return 1;
-    }
-    sprintf(req, "Temp: %d ", temperature);
-    slUART_WriteString(req);
-
-    sprintf(req, "Hum: %u ", humidity);
-    slUART_WriteString(req);
-
-    //dtostrf((double)(pressure, 9, 3, req);
-    sprintf(req, "Pres: %u \r\n", pressure);
-    slUART_WriteString(req);
     LED_TOG;
     _delay_ms(5000);
   }

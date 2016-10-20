@@ -249,7 +249,7 @@ uint8_t BME280_getCalibrationData() {
   slUART_WriteString("CalibParam.dig_H6: ");
   slUART_LogBinary(CalibParam.dig_H6);
 #endif
-
+  return 0;
 }
 
 /**********************************************************************
@@ -277,7 +277,9 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
   if (ID != 0x60)
     return 1;
 
-  BME280_getCalibrationData();
+  if(BME280_getCalibrationData()){
+    return 1;
+  }
 
   Temp = (t_sb << 5) | ((filter & 0x07) << 2);                    //config (0xB4)
   if (I2C_WriteData(BME280_I2C_ADDR, CONFIG_REG, &Temp, 1)) {
@@ -382,6 +384,11 @@ uint8_t BME280_ReadAll(float *t, float *p, float *h) {
   uint8_t Buff[8] = {0};
   uint32_t UncT, UncP, UncH;
   uint8_t cnt;
+
+
+  if(BME280_getCalibrationData()){
+    return 1;
+  }
 
   if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8)) {
 #if showDebugDataBME280 == 1
