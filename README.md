@@ -22,12 +22,12 @@ Get data from BME280, convert to redable data and send via RF module to laptop w
 ## Status
 
 Working on library BME280
+Added VirtualWire lib from arduino
 
 ![image1](https://github.com/darekb/tempHumidityPressureCollector/blob/master/IMG_20161004_230553.jpg?raw=true)
 
 ## Next step
-
-Create library for RF module 433.92MHz
+Test VirtualWire lib
 
 
 
