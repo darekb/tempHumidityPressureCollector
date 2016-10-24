@@ -4,7 +4,6 @@ PROJECT(cmake-avr)
 
 #SET(MCU_SPEED "16000000")
 SET(F_CPU "16000000UL")
-SET(TEST "testBME")
 SET(AVR_MCU "atmega328p")
 #set(AVR_H_FUSE 0xD6)
 #set(AVR_L_FUSE 0xF7)

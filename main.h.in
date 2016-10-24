@@ -1,2 +1,1 @@
-#cmakedefine TEST "@TEST@"
 #cmakedefine F_CPU @F_CPU@
