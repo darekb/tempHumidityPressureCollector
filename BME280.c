@@ -122,56 +122,91 @@ uint8_t I2C_ReadData(uint8_t device_addr, uint8_t register_addr, uint8_t *data, 
 }
 
 
-uint8_t BME280_ReadCalibrationData(){
-#if showDebugDataBME280 == 1
-  uint8_t cnt;
-#endif
-  uint8_t Buff[26] = {0};
-  if (I2C_ReadData(BME280_I2C_ADDR, CALIB_00_REG, Buff, 26)) {
-#if showDebugDataBME280 == 1
-    for (cnt = 0; cnt < 25; cnt++) {
-      slUART_WriteString("BME280_Init - Buff[");
-      slUART_LogDec(cnt);
-      slUART_WriteString("]: ");
-      slUART_LogBinary(Buff[cnt]);
-    }
-#endif
-    return 1;
-  }
-  CalibParam.dig_T1 = (Buff[1] << 8) | Buff[0];
-  CalibParam.dig_T2 = (Buff[3] << 8) | Buff[2];
-  CalibParam.dig_T3 = (Buff[5] << 8) | Buff[4];
+uint8_t BME280_getCalibrationData() {
 
-  CalibParam.dig_P1 = (Buff[7] << 8) | Buff[6];
-  CalibParam.dig_P2 = (Buff[9] << 8) | Buff[8];
-  CalibParam.dig_P3 = (Buff[11] << 8) | Buff[10];
-  CalibParam.dig_P4 = (Buff[13] << 8) | Buff[12];
-  CalibParam.dig_P5 = (Buff[15] << 8) | Buff[14];
-  CalibParam.dig_P6 = (Buff[17] << 8) | Buff[16];
-  CalibParam.dig_P7 = (Buff[19] << 8) | Buff[18];
-  CalibParam.dig_P8 = (Buff[21] << 8) | Buff[20];
-  CalibParam.dig_P9 = (Buff[23] << 8) | Buff[22];
-
-  CalibParam.dig_H1 = Buff[24];
-
-  memset(Buff, 0, 7);
-  if (I2C_ReadData(BME280_I2C_ADDR, CALIB_26_REG, Buff, 7)) {
+  uint8_t Buff[18];
+  uint8_t dig[32];
+  uint8_t cnt, ord;
+  ord = 0;
+  // Temp. Dig
+  if (I2C_ReadData(BME280_I2C_ADDR, TEMP_DIG_ADDR, Buff, 6)) {
 #if showDebugDataBME280 == 1
     for (cnt = 0; cnt < 6; cnt++) {
-      slUART_WriteString("BME280_Init - Buff[");
-      slUART_LogDec(cnt);
-      slUART_WriteString("]: ");
-      slUART_LogBinary(Buff[cnt]);
+        slUART_WriteString("BME280_Init - Tmp[");
+        slUART_LogDec(cnt);
+        slUART_WriteString("]: ");
+        slUART_LogBinary(dig[cnt]);
     }
 #endif
     return 1;
   }
+  for (cnt = 0; cnt < 6; cnt++) {
+    dig[ord++] = Buff[cnt];
+  }
+  CalibParam.dig_T1 = (dig[1] << 8) | dig[0];
+  CalibParam.dig_T2 = (dig[3] << 8) | dig[2];
+  CalibParam.dig_T3 = (dig[5] << 8) | dig[4];
 
-  CalibParam.dig_H2 = (Buff[1] << 8) | Buff[0];
-  CalibParam.dig_H3 = Buff[2];
-  CalibParam.dig_H4 = (Buff[3] << 4) | (Buff[4] & 0x0F);
-  CalibParam.dig_H5 = (Buff[5] << 4) | ((Buff[4] >> 4) & 0x0F);
-  CalibParam.dig_H6 = Buff[6];
+// Pressure Dig
+  if (I2C_ReadData(BME280_I2C_ADDR, PRESS_DIG_ADDR, Buff, 18)) {
+#if showDebugDataBME280 == 1
+    for (cnt = 0; cnt < 17; cnt++) {
+        slUART_WriteString("BME280_Init - Press[");
+        slUART_LogDec(cnt);
+        slUART_WriteString("]: ");
+        slUART_LogBinary(Buff[cnt]);
+    }
+#endif
+    return 1;
+  }
+  for (cnt = 0; cnt < 18; cnt++) {
+    dig[ord++] = Buff[cnt];
+  }
+  CalibParam.dig_P1 = (dig[7] << 8) | dig[6];
+  CalibParam.dig_P2 = (dig[9] << 8) | dig[8];
+  CalibParam.dig_P3 = (dig[11] << 8) | dig[10];
+  CalibParam.dig_P4 = (dig[13] << 8) | dig[12];
+  CalibParam.dig_P5 = (dig[15] << 8) | dig[14];
+  CalibParam.dig_P6 = (dig[17] << 8) | dig[16];
+  CalibParam.dig_P7 = (dig[19] << 8) | dig[18];
+  CalibParam.dig_P8 = (dig[21] << 8) | dig[20];
+  CalibParam.dig_P9 = (dig[23] << 8) | dig[22];
+
+
+  // Humidity Dig 1
+  if (I2C_ReadData(BME280_I2C_ADDR, HUM_DIG_ADDR1, Buff, 1)) {
+#if showDebugDataBME280 == 1
+    slUART_WriteString("BME280_Init - Hum1[");
+    slUART_LogDec(0);
+    slUART_WriteString("]: ");
+    slUART_LogBinary(Buff[0]);
+#endif
+    return 1;
+  }
+  dig[ord++] = Buff[0];
+
+// Humidity Dig 2
+  if (I2C_ReadData(BME280_I2C_ADDR, HUM_DIG_ADDR2, Buff, 7)) {
+#if showDebugDataBME280 == 1
+    for (cnt = 0; cnt < 6; cnt++) {
+        slUART_WriteString("BME280_Init - Buff[");
+        slUART_LogDec(cnt);
+        slUART_WriteString("]: ");
+        slUART_LogBinary(Buff[cnt]);
+    }
+#endif
+    return 1;
+  }
+  for (cnt = 0; cnt < 7; cnt++) {
+    dig[ord++] = Buff[cnt];
+  }
+
+  CalibParam.dig_H1 = dig[24];
+  CalibParam.dig_H2 = (dig[26] << 8) | dig[25];
+  CalibParam.dig_H3 = dig[27];
+  CalibParam.dig_H4 = (dig[28] << 4) | (dig[29] & 0x0F);
+  CalibParam.dig_H5 = (dig[30] << 4) | ((dig[29] >> 4) & 0x0F);
+  CalibParam.dig_H6 = dig[31];
 
 #if showDebugDataBME280 == 1
 
@@ -243,7 +278,7 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
   }
   if (ID != 0x60)
     return 1;
-  if(BME280_ReadCalibrationData()){
+  if(BME280_getCalibrationData()){
     return 1;
   }
 
@@ -267,14 +302,13 @@ uint8_t BME280_Init(uint8_t os_t, uint8_t os_p, uint8_t os_h,
 
 
 // Returns temperature in DegC, resolution is 0.01 DegC. Output value of �5123� equals 51.23 DegC.
-int32_t BME280_CompensateT(int32_t adc_T) {
+float BME280_CompensateT(int32_t adc_T) {
   int32_t var1, var2, T;
   var1 = ((((adc_T >> 3) - ((int32_t) CalibParam.dig_T1 << 1))) * ((int32_t) CalibParam.dig_T2)) >> 11;
   var2 = (((((adc_T >> 4) - ((int32_t) CalibParam.dig_T1)) * ((adc_T >> 4) - ((int32_t) CalibParam.dig_T1))) >> 12) *
           ((int32_t) CalibParam.dig_T3)) >> 14;
   t_fine = var1 + var2;
   T = (t_fine * 5 + 128) >> 8;
-  // return celsius ? final/100.0 : final/100.0*9.0/5.0 + 32.0;
 #if showDebugDataBME280 == 1
   slUART_WriteString("BME280_CompensateT: ");
   slUART_LogBinary((uint8_t) (T & 0xFF));
@@ -282,7 +316,7 @@ int32_t BME280_CompensateT(int32_t adc_T) {
   slUART_LogBinary((uint8_t) ((T >> 16) & 0xFF));
   slUART_LogBinary((uint8_t) ((T >> 24)));
 #endif
-  return T;
+  return T / 100.0;
 }
 
 // Returns pressure in Pa as unsigned 32 bit integer in Q24.8 format (24 integer bits and 8 fractional bits).
@@ -305,6 +339,7 @@ int64_t BME280_CompensateP(int32_t adc_P) {
   p = ((p + var1 + var2) >> 8) + (((int64_t) CalibParam.dig_P7) << 4);
 
   final = ((uint32_t) p) / 256.0;
+
 #if showDebugDataBME280 == 1
   slUART_WriteString("BME280_CompensateP: ");
   slUART_LogBinary((uint8_t) (p & 0xFF));
@@ -317,7 +352,7 @@ int64_t BME280_CompensateP(int32_t adc_P) {
 
 // Returns humidity in %RH as unsigned 32 bit integer in Q22.10 format (22 integer and 10 fractional bits).
 // Output value of �47445� represents 47445/1024 = 46.333 %RH
-uint32_t BME280_CompensateH(int32_t adc_H) {
+float BME280_CompensateH(int32_t adc_H) {
   int32_t v_x1_u32;
   v_x1_u32 = (t_fine - ((int32_t) 76800));
   v_x1_u32 = (
@@ -337,7 +372,7 @@ uint32_t BME280_CompensateH(int32_t adc_H) {
   slUART_LogBinary((uint8_t) ((v_x1_u32 >> 16) & 0xFF));
   slUART_LogBinary((uint8_t) ((v_x1_u32 >> 24)));
 #endif
-  return (uint32_t) v_x1_u32;
+  return v_x1_u32 / 1024.0;
 }
 
 /**********************************************************************
@@ -347,17 +382,18 @@ Parameters:	t - Pointer to variable in which to write the temperature
 			p - Pointer to variable in which to write the pressure
 			h - Pointer to variable in which to write the humidity
 **********************************************************************/
-uint8_t BME280_ReadAll(int32_t *t, int64_t *p, uint32_t *h) {
+
+uint8_t BME280_ReadAll(float *t, float *p, float *h) {
   uint8_t Buff[8] = {0};
   uint32_t UncT, UncP, UncH;
 #if showDebugDataBME280 == 1
   uint8_t cnt;
 #endif
-  if(BME280_ReadCalibrationData()){
+  if(BME280_getCalibrationData()){
     return 1;
   }
-  if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8)) {
 
+  if (I2C_ReadData(BME280_I2C_ADDR, PRESS_MSB_REG, Buff, 8)) {
 #if showDebugDataBME280 == 1
     for (cnt = 0; cnt < 7; cnt++) {
         slUART_WriteString("Buff[");
@@ -369,18 +405,11 @@ uint8_t BME280_ReadAll(int32_t *t, int64_t *p, uint32_t *h) {
     return 1;
   }
 
-  //UncP = (int32_t) (((uint32_t) Buff[0] << 12) | ((uint32_t) Buff[1] << 4) | ((uint32_t) Buff[2] >> 4));
-  UncP = ((Buff[0] << 12) | (Buff[1] << 4) | (Buff[2] >> 4));
-
-  // UncP = ((uint32_t) Buff[0] << 16) | ((uint16_t) Buff[1] << 8) | Buff[2];
-  // UncP >>= 4;
+  UncP = (int32_t) (((uint32_t) Buff[0] << 12) | ((uint32_t) Buff[1] << 4) | ((uint32_t) Buff[2] >> 4));
 
   UncT = (int32_t) (((uint32_t) Buff[3] << 12) | ((uint32_t) Buff[4] << 4) | ((uint32_t) Buff[5] >> 4));
-  // UncT = ((uint32_t) Buff[3] << 16) | ((uint16_t) Buff[4] << 8) | Buff[5];
-  // UncT >>= 4;
 
   UncH = (int32_t) (((uint32_t) Buff[6] << 8) | (uint32_t) Buff[7]);
-  //UncH = ((uint16_t) Buff[6] << 8) | Buff[7];
 
 #if showDebugDataBME280 == 1
   slUART_WriteString("UncP: ");
