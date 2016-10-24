@@ -18,15 +18,16 @@ set(AVR_UPLOADTOOL_PORT usb)
 set(CMAKE_BUILD_TYPE Release)
 
 SET(SOURCE_EXE
-    main.c
-    slI2C.c
-    slUart.c
-    BME280.c
-)
+        main.c
+        slI2C.c
+        slUart.c
+        BME280.c
+        VirtualWire.c
+        )
 
 SET(SOURCE_LIB
 
-)
+        )
 
 include_directories(../common)
 

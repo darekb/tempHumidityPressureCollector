@@ -14,7 +14,7 @@
 #include "slI2C.h"
 #include "slUart.h"
 #include "BME280.h"
-#include "softuart.h"
+#include "VirtualWire.h"
 
 //TODO średnia wleczone dla pomiarów
 //TODO implementacja RF module 433.92MHz
@@ -28,6 +28,7 @@ uint8_t sendData() {
   float temperature, humidity, pressure;
   char req[100] = "";
   char bufor[5] = "";
+  char delimiter[1] = "|";
 
   if (BME280_SetMode(BME280_MODE_FORCED)) {
 #if showDebugDataMain == 1
@@ -41,22 +42,31 @@ uint8_t sendData() {
 #endif
     return 1;
   }
-
-  strcat(req, "Temp: ");
+  //temperature
+  strcat(req, "");
   dtostrf((float) temperature, 1, 2, bufor);
   strcat(req, bufor);
-
-  strcat(req, "°C Hum: ");
+  //humidity
+  strcat(req, delimiter);
   dtostrf((float) humidity, 1, 2, bufor);
   strcat(req, bufor);
-
-  strcat(req, "% Press: ");
+  //pressure
+  strcat(req, delimiter);
   dtostrf((float) pressure, 1, 2, bufor);
   strcat(req, bufor);
+  //vcc
+  strcat(req, delimiter);
+  strcat(req, "0");
+  //sensor nr
+  strcat(req, delimiter);
+  strcat(req, "11");
+  strcat(req, delimiter);
+  strcat(req, "z");
 
   slUART_WriteString(req);
-  slUART_WriteString("Pa\r\n");
-
+  slUART_WriteString("\r\n");
+  vw_send((uint8_t *)req, strlen(req));
+  vw_wait_tx(); // Wait until the whole message is gone
   return 0;
 }
 
@@ -64,6 +74,7 @@ int main(void) {
   DDRB |= LED;
   slI2C_Init();
   slUART_SimpleTransmitInit();
+  vw_setup(2000);
 #if showDebugDataMain == 1
   slUART_WriteString("Start.\r\n");
 #endif
