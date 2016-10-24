@@ -63,10 +63,11 @@ uint8_t sendData() {
   strcat(req, delimiter);
   strcat(req, "z");
 
-  slUART_WriteString(req);
-  slUART_WriteString("\r\n");
   vw_send((uint8_t *)req, strlen(req));
   vw_wait_tx(); // Wait until the whole message is gone
+
+  slUART_WriteString(req);
+  slUART_WriteString("\r\n");
   return 0;
 }
 
@@ -74,7 +75,9 @@ int main(void) {
   DDRB |= LED;
   slI2C_Init();
   slUART_SimpleTransmitInit();
-  vw_setup(2000);
+  vw_set_ptt_inverted(1); // Required for DR3100
+  vw_setup(2000);   // Bits per sec
+  //vw_set_tx_pin(13);//PB5 set pin in VirtualWire_Config.h
 #if showDebugDataMain == 1
   slUART_WriteString("Start.\r\n");
 #endif
