@@ -34,3 +34,5 @@
 
 .idea/
 bin/
+._*
+.DS_Store
