@@ -260,7 +260,7 @@
  #elif defined MPIDE
   #define VW_PLATFORM VW_PLATFORM_UNO32
  #else
-  #error Platform not defined!
+  #error Platform not defined! 	
  #endif
 #endif
 
@@ -278,7 +278,7 @@
  // Defines which timer to use on Maple
  #define MAPLE_TIMER 1
 #elif (VW_PLATFORM == VW_PLATFORM_UNO32)
-#elif (VW_PLATFORM != VW_PLATFORM_GENERIC_AVR8)
+#elif (VW_PLATFORM != VW_PLATFORM_GENERIC_AVR8) 
 	#error Platform unknown!
 #endif
 
@@ -287,7 +287,7 @@
 #undef double
 #undef round
 
-#ifndef VW_MAX_MESSAGE_LEN
+#ifndef VW_MAX_MESSAGE_LEN 
 /// Maximum number of bytes in a message, counting the byte count and FCS
 	#define VW_MAX_MESSAGE_LEN 80
 #endif //VW_MAX_MESSAGE_LEN 
@@ -341,8 +341,8 @@ extern "C"
     /// the transmitter is enabled
     /// \param[in] pin The Arduino pin number to enable the transmitter. Defaults to 10.
     extern void vw_set_ptt_pin(uint8_t pin);
-
-    /// Set the digital IO pin to be for transmit data.
+    
+    /// Set the digital IO pin to be for transmit data. 
     /// This pin will only be accessed if
     /// the transmitter is enabled
     /// \param[in] pin The Arduino pin number for transmitting data. Defaults to 12.
@@ -355,7 +355,7 @@ extern "C"
     extern void vw_set_rx_pin(uint8_t pin);
 #endif
 
-    /// By default the RX pin is expected to be low when idle, and to pulse high
+    /// By default the RX pin is expected to be low when idle, and to pulse high 
     /// for each data pulse.
     /// This flag forces it to be inverted. This may be necessary if your transport medium
     /// inverts the logic of your signal, such as happens with some types of A/V tramsmitter.

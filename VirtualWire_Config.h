@@ -6,7 +6,6 @@
 //	Uncomment this to select the platform as generic AVR8
 #define VW_PLATFORM VW_PLATFORM_GENERIC_AVR8
 
-
 //	OPTIONAL: Define the IO pin used for PTT (push to talk)
 //	If no PTT port will be defined, the PTT feature will be disabled
 //#define VW_PTT_PORT PORT#
@@ -28,6 +27,9 @@
 //     OCRnA as compare register and TIMERn_COMPA_vect as interrupt vector
 //	If one of the above doesn't suite your current platform, please redefine
 //     the timer setup routine, as indicated below
+//#define VW_TIMER_INDEX 1
+
+//	Select Timer 1 as the 16 bits timer used by the library
 #define VW_TIMER_INDEX 1
 
 //
@@ -59,7 +61,7 @@
 	//	Select Timer 1 as the 16 bits timer used by the library
 	#define VW_TIMER_INDEX 1
 */
-#define VW_MAX_MESSAGE_LEN 40
+
 //
 //	OPTIONAL: Alternative pin setup for advanced configurations
 //	Instead of defining VW_PTT_PORT/DDR/PIN, VW_TX_PORT/DDR/PIN or VW_RX_PORT/DDR/PIN

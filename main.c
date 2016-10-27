@@ -36,7 +36,6 @@ uint8_t sendData() {
   float temperature, humidity, pressure;
   char req[39] = "";
   char bufor[5] = "";
-  char delimiter[1] = "|";
   char buf[VW_MAX_MESSAGE_LEN];
   uint8_t buflen = VW_MAX_MESSAGE_LEN;
   char wiad[39] = "";
@@ -54,26 +53,15 @@ uint8_t sendData() {
     return 1;
   }
   //temperature
-  strcat(req, "");
-  dtostrf((float) temperature, 1, 2, bufor);
-  strcat(req, bufor);
+  toStringToSend(temperature, req);
   //humidity
-  strcat(req, delimiter);
-  dtostrf((float) humidity, 1, 2, bufor);
-  strcat(req, bufor);
+  toStringToSend(humidity, req);
   //pressure
-  strcat(req, delimiter);
-  dtostrf((float) pressure, 1, 2, bufor);
-  strcat(req, bufor);
+  toStringToSend(pressure, req);
   //vcc
-  strcat(req, delimiter);
-  strcat(req, "0");
-  //sensor nr
-  strcat(req, delimiter);
-  strcat(req, "11");
-  //end transmision
-  strcat(req, delimiter);
-  strcat(req, "z");
+  toStringToSend(0.0, req);
+  //sensor nr an char endig transmission
+  strcat(req, "|11|z");
 
   vw_send((uint8_t *)req, strlen(req));
   vw_wait_tx(); // Wait until the whole message is gone
@@ -94,6 +82,7 @@ uint8_t sendData() {
 }
 
 int main(void) {
+  char delimiter[1] = "|";
   DDRB |= LED;
   slI2C_Init();
   slUART_SimpleTransmitInit();
