@@ -31,14 +31,12 @@
 #include <string.h>
 #include <wirish.h>
 #elif (VW_PLATFORM == VW_PLATFORM_GENERIC_AVR8)
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <string.h>
 #include <stdbool.h>
 #include <util/crc16.h>
-
 #endif
 
 //	Define digitalRead, digitalWrite and digital pins for Arduino like platforms
@@ -59,8 +57,8 @@ static uint8_t vw_tx_pin = 12;
 //	Prepare VirtualWire for generic AVR8 configurations
 #elif (VW_PLATFORM == VW_PLATFORM_GENERIC_AVR8)
 
-#define __COMB(a, b, c) (a##b##c)
-#define _COMB(a, b, c) __COMB(a,b,c)
+#define __COMB(a,b,c) (a##b##c)
+#define _COMB(a,b,c) __COMB(a,b,c)
 
 //	IO pin setup if PTT is defined by config
 #ifdef VW_PTT_PIN
@@ -271,21 +269,18 @@ void vw_set_ptt_inverted(uint8_t inverted) {
 #if (VW_PLATFORM != VW_PLATFORM_GENERIC_AVR8)
 
 // Set the output pin number for transmitter data
-void vw_set_tx_pin(uint8_t pin)
-{
+void vw_set_tx_pin(uint8_t pin) {
   vw_tx_pin = pin;
 }
 
 // Set the pin number for input receiver data
-void vw_set_rx_pin(uint8_t pin)
-{
+void vw_set_rx_pin(uint8_t pin) {
   vw_rx_pin = pin;
 }
 
 // Set the output pin number for transmitter PTT enable
-void vw_set_ptt_pin(uint8_t pin)
-{
-    vw_ptt_pin = pin;
+void vw_set_ptt_pin(uint8_t pin) {
+  vw_ptt_pin = pin;
 }
 
 #endif
@@ -394,46 +389,51 @@ void TIMER1_COMPA_vect(void);
 // Returns prescaler index into {0, 1, 8, 64, 256, 1024} array
 // and sets nticks to compare-match value if lower than max_ticks
 // returns 0 & nticks = 0 on fault
-uint8_t vw_timer_calc(uint16_t speed, uint16_t max_ticks, uint16_t *nticks) {
-  // Clock divider (prescaler) values - 0/3333: error flag
-  uint16_t prescalers[] = {0, 1, 8, 64, 256, 1024, 3333};
-  uint8_t prescaler = 0; // index into array & return bit value
-  unsigned long ulticks; // calculate by ntick overflow
+uint8_t vw_timer_calc(uint16_t speed, uint16_t max_ticks, uint16_t *nticks)
+{
+    // Clock divider (prescaler) values - 0/3333: error flag
+    uint16_t prescalers[] = {0, 1, 8, 64, 256, 1024, 3333};
+    uint8_t prescaler=0; // index into array & return bit value
+    unsigned long ulticks; // calculate by ntick overflow
 
-  // Div-by-zero protection
-  if (speed == 0) {
-    // signal fault
-    *nticks = 0;
-    return 0;
-  }
-
-  // test increasing prescaler (divisor), decreasing ulticks until no overflow
-  for (prescaler = 1; prescaler < 7; prescaler += 1) {
-    // Integer arithmetic courtesy Jim Remington
-    // 1/Amount of time per CPU clock tick (in seconds)
-    unsigned long inv_clock_time = F_CPU / ((unsigned long) prescalers[prescaler]);
-    // 1/Fraction of second needed to xmit one bit
-    unsigned long inv_bit_time = ((unsigned long) speed) * 8;
-    // number of prescaled ticks needed to handle bit time @ speed
-    ulticks = inv_clock_time / inv_bit_time;
-
-    // Test if ulticks fits in nticks bitwidth (with 1-tick safety margin)
-    if ((ulticks > 1) && (ulticks < max_ticks)) {
-      break; // found prescaler
+    // Div-by-zero protection
+    if (speed == 0)
+    {
+        // signal fault
+        *nticks = 0;
+        return 0;
     }
-    // Won't fit, check with next prescaler value
 
-  }
+    // test increasing prescaler (divisor), decreasing ulticks until no overflow
+    for (prescaler=1; prescaler < 7; prescaler += 1)
+    {
+  // Integer arithmetic courtesy Jim Remington
+  // 1/Amount of time per CPU clock tick (in seconds)
+        unsigned long inv_clock_time = F_CPU / ((unsigned long)prescalers[prescaler]);
+        // 1/Fraction of second needed to xmit one bit
+        unsigned long inv_bit_time = ((unsigned long)speed) * 8;
+        // number of prescaled ticks needed to handle bit time @ speed
+        ulticks = inv_clock_time/inv_bit_time;
 
-  // Check for error
-  if ((prescaler == 6) || (ulticks < 2) || (ulticks > max_ticks)) {
-    // signal fault
-    *nticks = 0;
-    return 0;
-  }
+        // Test if ulticks fits in nticks bitwidth (with 1-tick safety margin)
+        if ((ulticks > 1) && (ulticks < max_ticks))
+        {
+            break; // found prescaler
+        }
+        // Won't fit, check with next prescaler value
 
-  *nticks = ulticks;
-  return prescaler;
+    }
+
+    // Check for error
+    if ((prescaler == 6) || (ulticks < 2) || (ulticks > max_ticks))
+    {
+        // signal fault
+        *nticks = 0;
+        return 0;
+    }
+
+    *nticks = ulticks;
+    return prescaler;
 }
 
 
@@ -555,13 +555,12 @@ void vw_setup(uint16_t speed)
     timer.resume();
 }
 #elif (VW_PLATFORM == VW_PLATFORM_GENERIC_AVR8)
-
-void vw_setup(uint16_t speed) {
+void vw_setup(uint16_t speed)
+{
   vw_pinSetup();
   vw_digitalWrite_ptt(vw_ptt_inverted);
   vw_timerSetup(speed);
 }
-
 #endif
 
 // Start the transmitter, call when the tx buffer is ready to go and vw_tx_len is
@@ -624,22 +623,22 @@ void vw_wait_rx() {
 
 // Wait at most max milliseconds for the receiver to receive a message
 // Return the truth of whether there is a message
-uint8_t vw_wait_rx_max(unsigned long milliseconds)
-{
-    unsigned long start = millis();
+uint8_t vw_wait_rx_max(unsigned long milliseconds) {
+  unsigned long start = millis();
 
-    while (!vw_rx_done && ((millis() - start) < milliseconds))
-  ;
-    return vw_rx_done;
+  while (!vw_rx_done && ((millis() - start) < milliseconds));
+  return vw_rx_done;
 }
 
 #else
 
 // Wait at most max milliseconds for the receiver to receive a message
 // Return the truth of whether there is a message
-uint8_t vw_wait_rx_max(unsigned long milliseconds) {
-  while (milliseconds--) {
-    if (vw_rx_done)
+uint8_t vw_wait_rx_max(unsigned long milliseconds)
+{
+  while( milliseconds -- )
+  {
+    if( vw_rx_done )
       break;
 
     vw_delay_1ms();
@@ -754,42 +753,45 @@ uint8_t vw_get_rx_bad() {
 #if defined(__arm__) && defined(CORE_TEENSY)
 void TIMER1_COMPA_vect(void)
 #else
-
 ISR(VW_TIMER_VECTOR)
 #endif
 {
 
-  if (vw_rx_enabled && !vw_tx_enabled)
-    vw_rx_sample = vw_digitalRead_rx() ^ vw_rx_inverted;
+    if (vw_rx_enabled && !vw_tx_enabled)
+  vw_rx_sample = vw_digitalRead_rx() ^ vw_rx_inverted;
 
-  // Do transmitter stuff first to reduce transmitter bit jitter due
-  // to variable receiver processing
-  if (vw_tx_enabled && vw_tx_sample++ == 0) {
-    // Send next bit
-    // Symbols are sent LSB first
-    // Finished sending the whole message? (after waiting one bit period
-    // since the last bit)
-    if (vw_tx_index >= vw_tx_len) {
+    // Do transmitter stuff first to reduce transmitter bit jitter due
+    // to variable receiver processing
+    if (vw_tx_enabled && vw_tx_sample++ == 0)
+    {
+  // Send next bit
+  // Symbols are sent LSB first
+  // Finished sending the whole message? (after waiting one bit period
+  // since the last bit)
+  if (vw_tx_index >= vw_tx_len)
+  {
       vw_tx_stop();
       vw_tx_msg_count++;
-    }
-    else {
-      vw_digitalWrite_tx(vw_tx_buf[vw_tx_index] & (1 << vw_tx_bit++));
-      if (vw_tx_bit >= 6) {
-        vw_tx_bit = 0;
-        vw_tx_index++;
-      }
-    }
   }
-  if (vw_tx_sample > 7)
-    vw_tx_sample = 0;
+  else
+  {
+      vw_digitalWrite_tx(vw_tx_buf[vw_tx_index] & (1 << vw_tx_bit++));
+      if (vw_tx_bit >= 6)
+      {
+    vw_tx_bit = 0;
+    vw_tx_index++;
+      }
+  }
+    }
+    if (vw_tx_sample > 7)
+  vw_tx_sample = 0;
 
-  if (vw_rx_enabled && !vw_tx_enabled)
-    vw_pll();
+    if (vw_rx_enabled && !vw_tx_enabled)
+  vw_pll();
 }
 
 
-// LaunchPad, Maple
+ // LaunchPad, Maple
 #elif (VW_PLATFORM == VW_PLATFORM_MSP430) || (VW_PLATFORM == VW_PLATFORM_STM32)
 void vw_Int_Handler()
 {

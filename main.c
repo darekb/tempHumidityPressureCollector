@@ -21,14 +21,25 @@
 
 #define LED (1 << PB0)
 #define LED_TOG PORTB ^= LED
+#define DELIMITER "|"
 
 #define showDebugDataMain 1
 
+void toStringToSend(float inData, char * out){
+  char bufor[10] = "";
+  strcat(out, DELIMITER);
+  dtostrf((float) inData, 1, 2, bufor);
+  strcat(out, bufor);
+}
+
 uint8_t sendData() {
   float temperature, humidity, pressure;
-  char req[100] = "";
+  char req[39] = "";
   char bufor[5] = "";
   char delimiter[1] = "|";
+  char buf[VW_MAX_MESSAGE_LEN];
+  uint8_t buflen = VW_MAX_MESSAGE_LEN;
+  char wiad[39] = "";
 
   if (BME280_SetMode(BME280_MODE_FORCED)) {
 #if showDebugDataMain == 1
@@ -60,14 +71,25 @@ uint8_t sendData() {
   //sensor nr
   strcat(req, delimiter);
   strcat(req, "11");
+  //end transmision
   strcat(req, delimiter);
   strcat(req, "z");
 
   vw_send((uint8_t *)req, strlen(req));
   vw_wait_tx(); // Wait until the whole message is gone
-
+  slUART_WriteString("Send value: ");
   slUART_WriteString(req);
   slUART_WriteString("\r\n");
+  _delay_ms(100);
+  if (vw_get_message(buf, &buflen)) {
+    int i;
+    for (i = 0; i < buflen; i++) {
+      wiad[i] = buf[i];
+    }
+    slUART_WriteString("Read value: ");
+    slUART_WriteString(wiad);
+    slUART_WriteString("\r\n");
+  }
   return 0;
 }
 
@@ -75,9 +97,11 @@ int main(void) {
   DDRB |= LED;
   slI2C_Init();
   slUART_SimpleTransmitInit();
-  vw_set_ptt_inverted(1); // Required for DR3100
+  //vw_set_ptt_inverted(1); // Required for DR3100
   vw_setup(2000);   // Bits per sec
   //vw_set_tx_pin(13);//PB5 set pin in VirtualWire_Config.h
+  vw_rx_start(); 
+  sei();
 #if showDebugDataMain == 1
   slUART_WriteString("Start.\r\n");
 #endif
@@ -100,7 +124,7 @@ int main(void) {
 #endif
     }
     LED_TOG;
-    _delay_ms(5000);
+    _delay_ms(6000);
   }
   return 0;
 }
