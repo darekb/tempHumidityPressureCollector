@@ -13,9 +13,13 @@
 
 #include "main.h"
 #include "slI2C.h"
+
 #if showDebugDataMain == 1
+
 #include "slUart.h"
+
 #endif
+
 #include "BME280.h"
 #include "VirtualWire.h"
 
@@ -26,6 +30,13 @@
 #define LED_TOG PORTB ^= LED
 #define DELIMITER "|"
 
+float temperature, humidity, pressure;
+char req[39] = "";
+char buf[VW_MAX_MESSAGE_LEN];
+char buflen = VW_MAX_MESSAGE_LEN;
+char wiad[39] = "";
+volatile uint8_t stage = 0;
+volatile uint16_t counter = 0;
 
 void toStringToSend(float inData, char *out) {
   char bufor[10] = "";
@@ -35,24 +46,33 @@ void toStringToSend(float inData, char *out) {
 }
 
 uint8_t sendData() {
-  float temperature, humidity, pressure;
-  char req[39] = "";
-  char buf[VW_MAX_MESSAGE_LEN];
-  char buflen = VW_MAX_MESSAGE_LEN;
-  char wiad[39] = "";
 
+
+  _delay_ms(100);
+  return 0;
+}
+
+uint8_t stage1_SetBME280Mode() {
   if (BME280_SetMode(BME280_MODE_FORCED)) {
 #if showDebugDataMain == 1
     slUART_WriteString("Sensor set forced mode error!\r\n");
 #endif
     return 1;
   }
+  return 0;
+}
+
+uint8_t stage2_GetDataFromBME280() {
   if (BME280_ReadAll(&temperature, &pressure, &humidity)) {
 #if showDebugDataMain == 1
     slUART_WriteString("Sensor read error!\r\n");
 #endif
     return 1;
   }
+  return 0;
+}
+
+uint8_t stage3_prepareDataToSend() {
   //temperature
   toStringToSend(temperature, req);
   //humidity
@@ -63,7 +83,11 @@ uint8_t sendData() {
   toStringToSend(0.0, req);
   //sensor nr an char endig transmission
   strcat(req, "|11|z");
+  return 0;
+}
 
+uint8_t stage4_sendViaRadio() {
+  LED_TOG;
   vw_send((uint8_t *) req, strlen(req));
   vw_wait_tx(); // Wait until the whole message is gone
 #if showDebugDataMain == 1
@@ -71,23 +95,14 @@ uint8_t sendData() {
   slUART_WriteString(req);
   slUART_WriteString("\r\n");
 #endif
-  _delay_ms(100);
-  if (vw_get_message(buf, &buflen)) {
-    int i;
-    for (i = 0; i < buflen; i++) {
-      wiad[i] = buf[i];
-    }
-#if showDebugDataMain == 1
-    slUART_WriteString("Read value: ");
-    slUART_WriteString(wiad);
-    slUART_WriteString("\r\n");
-#endif
-  }
+  LED_TOG;
   return 0;
 }
 
+
 int main(void) {
-  char delimiter[1] = "|";
+  TCCR0B |= (1 << CS02) | (1 << CS00);//prescaler 1024
+  TIMSK0 |= (1 << TOIE0);//przerwanie przy przepłnieniu timera0
   DDRB |= LED;
   slI2C_Init();
   slUART_SimpleTransmitInit();
@@ -110,15 +125,55 @@ int main(void) {
 #endif
   }
   while (1) {
-    LED_TOG;
-    _delay_ms(100);
-    if (sendData()) {
+    switch (stage) {
+      case 1:
+        if (!stage1_SetBME280Mode()) {
+          stage = 0;
+          return 1;
+        }
+        stage = 2;
+        break;
+      case 2:
+        if (!stage2_GetDataFromBME280()) {
+          stage = 0;
+          return 1;
+        }
+        stage = 3;
+        break;
+      case 3:
+        if (!stage3_prepareDataToSend()) {
+          stage = 0;
+          return 1;
+        }
+        stage = 4;
+        break;
+      case 4:
+        if (!stage4_sendViaRadio()) {
+          stage = 0;
+          return 1;
+        }
+        stage = 0;
+        break;
+    }
+    if (vw_get_message(buf, &buflen)) {
+      int i;
+      for (i = 0; i < buflen; i++) {
+        wiad[i] = buf[i];
+      }
 #if showDebugDataMain == 1
-      slUART_WriteString("Send data error.\r\n");
+      slUART_WriteString("Read value: ");
+      slUART_WriteString(wiad);
+      slUART_WriteString("\r\n");
 #endif
     }
-    LED_TOG;
-    _delay_ms(6000);
   }
   return 0;
+}
+
+ISR(TIMER0_OVF_vect) {
+  counter = counter + 1;
+  if (counter == 366) {//około 6s
+    counter = 0;
+    stage = 1;
+  }
 }
