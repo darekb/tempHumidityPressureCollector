@@ -29,6 +29,8 @@ SET(SOURCE_LIB
         )
 
 include_directories(../common)
+include_directories(/home/darek/Pobrane/simavr-master/simavr/sim/)
+include_directories(/home/darek/Pobrane/simavr-master/simavr/sim/avr)
 
 ##########################################################################
 # compiler options for all build types

@@ -6,6 +6,10 @@
 // Copyright (C) 2008 Mike McCauley
 // $Id: VirtualWire.cpp,v 1.18 2014/03/26 01:09:36 mikem Exp mikem $
 
+#define CHECK (1<<PD5)
+#define CHECK_TOGGLE (PROTD ^= CHECK)
+
+
 #include "VirtualWire.h"
 #include "slUart.h"
 // Arduino 1.0 includes crc16.h, so use it else can get clashes with other libraries
@@ -559,6 +563,7 @@ void vw_setup(uint16_t speed)
 #elif (VW_PLATFORM == VW_PLATFORM_GENERIC_AVR8)
 
 void vw_setup(uint16_t speed) {
+
   vw_pinSetup();
   vw_digitalWrite_ptt(vw_ptt_inverted);
   vw_timerSetup(speed);
