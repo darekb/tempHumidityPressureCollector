@@ -45,13 +45,6 @@ void toStringToSend(float inData, char *out) {
   strcat(out, bufor);
 }
 
-uint8_t sendData() {
-
-
-  _delay_ms(100);
-  return 0;
-}
-
 uint8_t stage1_SetBME280Mode() {
   if (BME280_SetMode(BME280_MODE_FORCED)) {
 #if showDebugDataMain == 1
@@ -73,6 +66,7 @@ uint8_t stage2_GetDataFromBME280() {
 }
 
 uint8_t stage3_prepareDataToSend() {
+  strcpy(req, "");
   //temperature
   toStringToSend(temperature, req);
   //humidity
@@ -125,37 +119,10 @@ int main(void) {
 #endif
   }
   while (1) {
-    switch (stage) {
-      case 1:
-        if (!stage1_SetBME280Mode()) {
-          stage = 0;
-          return 1;
-        }
-        stage = 2;
-        break;
-      case 2:
-        if (!stage2_GetDataFromBME280()) {
-          stage = 0;
-          return 1;
-        }
-        stage = 3;
-        break;
-      case 3:
-        if (!stage3_prepareDataToSend()) {
-          stage = 0;
-          return 1;
-        }
-        stage = 4;
-        break;
-      case 4:
-        if (!stage4_sendViaRadio()) {
-          stage = 0;
-          return 1;
-        }
-        stage = 0;
-        break;
-    }
     if (vw_get_message(buf, &buflen)) {
+#if showDebugDataMain == 1
+      slUART_WriteString("jest message\r\n");
+#endif
       int i;
       for (i = 0; i < buflen; i++) {
         wiad[i] = buf[i];
@@ -166,13 +133,44 @@ int main(void) {
       slUART_WriteString("\r\n");
 #endif
     }
+    switch (stage) {
+      case 1:
+        if (stage1_SetBME280Mode()) {
+          stage = 0;
+          return 1;
+        }
+        stage = 2;
+        break;
+      case 2:
+        if (stage2_GetDataFromBME280()) {
+          stage = 0;
+          return 1;
+        }
+        stage = 3;
+        break;
+      case 3:
+        if (stage3_prepareDataToSend()) {
+          stage = 0;
+          return 1;
+        }
+        stage = 4;
+        break;
+      case 4:
+        if (stage4_sendViaRadio()) {
+          stage = 0;
+          return 1;
+        }
+        stage = 0;
+        break;
+    }
   }
   return 0;
 }
 
 ISR(TIMER0_OVF_vect) {
+  //co 0.01632sek.
   counter = counter + 1;
-  if (counter == 366) {//około 6s
+  if (counter == 366) {//5,97312 sek
     counter = 0;
     stage = 1;
   }
