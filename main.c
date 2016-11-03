@@ -172,6 +172,8 @@ ISR(TIMER0_OVF_vect) {
   counter = counter + 1;
   if (counter == 366) {//5,97312 sek
     counter = 0;
-    stage = 1;
+    if(stage == 0){
+      stage = 1;
+    }
   }
 }
