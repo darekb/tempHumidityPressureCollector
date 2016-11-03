@@ -32,6 +32,10 @@
 //	Select Timer 1 as the 16 bits timer used by the library
 #define VW_TIMER_INDEX 1
 
+
+#define CHECK 1 << PD7
+#define CHECK_TOGGLE PORTD ^= CHECK
+
 //
 //	EXAMPLE: configuration suitable for At90USB162 or ATMega32U2
 //

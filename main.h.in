@@ -1,2 +1,1 @@
 #cmakedefine F_CPU @F_CPU@
-#cmakedefine AVR_MCU @AVR_MCU@

@@ -6,8 +6,6 @@
 // Copyright (C) 2008 Mike McCauley
 // $Id: VirtualWire.cpp,v 1.18 2014/03/26 01:09:36 mikem Exp mikem $
 
-#define CHECK (1<<PD5)
-#define CHECK_TOGGLE (PROTD ^= CHECK)
 
 
 #include "VirtualWire.h"
@@ -46,6 +44,7 @@
 #include <stdbool.h>
 
 #endif
+
 
 //	Define digitalRead, digitalWrite and digital pins for Arduino like platforms
 #if (VW_PLATFORM != VW_PLATFORM_GENERIC_AVR8)
@@ -271,6 +270,7 @@ void vw_set_rx_inverted(uint8_t inverted) {
 
 // Set the ptt pin inverted (low to transmit)
 void vw_set_ptt_inverted(uint8_t inverted) {
+  CHECK_TOGGLE;
   vw_ptt_inverted = inverted;
 }
 
@@ -563,7 +563,7 @@ void vw_setup(uint16_t speed)
 #elif (VW_PLATFORM == VW_PLATFORM_GENERIC_AVR8)
 
 void vw_setup(uint16_t speed) {
-
+  
   vw_pinSetup();
   vw_digitalWrite_ptt(vw_ptt_inverted);
   vw_timerSetup(speed);

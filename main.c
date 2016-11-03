@@ -1,15 +1,18 @@
+
+#ifndef F_CPU
+  #define F_CPU 16000000UL
+#endif
+
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+
 #include <sim_avr.h>
 #include <sim_gdb.h>
-
-#ifndef F_CPU
-  #define F_CPU 16000000UL
-#endif
 
 #define showDebugDataMain 1
 
@@ -25,6 +28,22 @@
 #include "BME280.h"
 #include "VirtualWire.h"
 
+
+#include "avr_mcu_section.h"
+AVR_MCU(F_CPU, "atmega328");
+#define SET_LOW(port, pin)  port &= ~_BV(pin)
+#define SET_HIGH(port, pin) port |=  _BV(pin)
+#define TOGGLE(port, pin)   port ^=  _BV(pin)
+
+const struct avr_mmcu_vcd_trace_t _mytrace[]  _MMCU_ = {
+    //{ AVR_MCU_VCD_SYMBOL("PORTB"), .what = (void*)&PORTB, },
+    { AVR_MCU_VCD_SYMBOL("PD5"), .mask = _BV(PD5), .what = (void *)&PORTD },
+    { AVR_MCU_VCD_SYMBOL("PD7"), .mask = _BV(PD7), .what = (void *)&PORTD },
+    // { AVR_MCU_VCD_SYMBOL("TIMSK0"), .what = (void*)&TIMSK0, },
+    // { AVR_MCU_VCD_SYMBOL("TCCR0B"), .what = (void*)&TCCR0B, }
+};
+
+
 //TODO średnia wleczone dla pomiarów
 //TODO implementacja RF module 433.92MHz
 
@@ -32,12 +51,6 @@
 #define LED_TOG PORTB ^= LED
 #define DELIMITER "|"
 
-const struct avr_mmcu_vcd_trace_t _mytrace[]  AVR_MCU = {
-    //{ AVR_MCU_VCD_SYMBOL("PORTB"), .what = (void*)&PORTB, },
-    { AVR_MCU_VCD_SYMBOL("PD5"), .mask = _BV(PD5), .what = (void *)&PORTD },
-    // { AVR_MCU_VCD_SYMBOL("TIMSK0"), .what = (void*)&TIMSK0, },
-    // { AVR_MCU_VCD_SYMBOL("TCCR0B"), .what = (void*)&TCCR0B, }
-};
 
 // float temperature, humidity, pressure;
 // char req[39] = "";
@@ -101,26 +114,22 @@ volatile uint16_t counter = 0;
 //   LED_TOG;
 //   return 0;
 // }
-
-#define SET_LOW(port, pin)  port &= ~_BV(pin)
-#define SET_HIGH(port, pin) port |=  _BV(pin)
-#define TOGGLE(port, pin)   port ^=  _BV(pin)
-
 int main(void) {
   TCCR0B |= (1 << CS02) | (1 << CS00);//prescaler 1024
   TIMSK0 |= (1 << TOIE0);//przerwanie przy przepłnieniu timera0
   DDRB |= LED;
 
 
-  PORTD &= (1<<PD5);
-  DDRD |= (1<<PD5);
+  DDRD |= (1<<PD5) | (1<<PD7);
+  PORTD &= ~(1<<PD5) | ~(1<<PD7);
+  DDRD |= CHECK;
 
-  slI2C_Init();
-  slUART_SimpleTransmitInit();
-  vw_set_ptt_inverted(1); // Required for DR3100
-  vw_setup(2000);   // Bits per sec
+  //slI2C_Init();
+  //slUART_SimpleTransmitInit();
+  //vw_set_ptt_inverted(1); // Required for DR3100
+  //vw_setup(2000);   // Bits per sec
   //vw_set_tx_pin(13);//PB5 set pin in VirtualWire_Config.h
-  vw_rx_start();
+  //vw_rx_start();
   sei();
 // #if showDebugDataMain == 1
 //   slUART_WriteString("Start.\r\n");
@@ -135,7 +144,7 @@ int main(void) {
 //     slUART_WriteString("BMP280 init done.\r\n");
 // #endif
 //   }
-//   while (1) {
+   while (1) {
 //     if (vw_get_message(buf, &buflen)) {
 // #if showDebugDataMain == 1
 //       slUART_WriteString("jest message\r\n");
@@ -180,15 +189,18 @@ int main(void) {
 //         stage = 0;
 //         break;
 //     }
-//   }
-//   return 0;
+   }
+   return 0;
 }
 
 ISR(TIMER0_OVF_vect) {
   //co 0.01632sek.
+    TOGGLE(PORTD, PD5);
   counter = counter + 1;
   if (counter == 366) {//5,97312 sek
     counter = 0;
-    stage = 1;
+    if(stage == 0){
+      stage = 1;
+    }
   }
 }
