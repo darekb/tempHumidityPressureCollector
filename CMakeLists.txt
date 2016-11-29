@@ -21,7 +21,7 @@ SET(SOURCE_EXE
         slI2C.c
         slUart.c
         BME280.c
-        VirtualWire.c
+        nrf24l01.c
         )
 
 SET(SOURCE_LIB

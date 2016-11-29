@@ -21,20 +21,16 @@
 #endif
 
 #include "BME280.h"
-#include "VirtualWire.h"
+#include "nrf24l01.h"
 
 //TODO średnia wleczone dla pomiarów
-//TODO implementacja RF module 433.92MHz
 
 #define LED (1 << PB0)
 #define LED_TOG PORTB ^= LED
 #define DELIMITER "|"
 
 float temperature, humidity, pressure;
-char req[39] = "";
-char buf[VW_MAX_MESSAGE_LEN];
-char buflen = VW_MAX_MESSAGE_LEN;
-char wiad[39] = "";
+char req[32] = "";
 volatile uint8_t stage = 0;
 volatile uint16_t counter = 0;
 
@@ -80,10 +76,20 @@ uint8_t stage3_prepareDataToSend() {
   return 0;
 }
 
-uint8_t stage4_sendViaRadio() {
+uint8_t stage4_sendVianRF24L01(nRF24L01 *rf, uint8_t to_address[5]) {
+  nRF24L01Message msg;
   LED_TOG;
-  vw_send((uint8_t *) req, strlen(req));
-  vw_wait_tx(); // Wait until the whole message is gone
+  memcpy(msg.data, req, 32);
+  //msg.data = req;
+  msg.length = strlen((char *)msg.data) + 1;
+  nRF24L01_transmit(rf, to_address, &msg);
+  int success = nRF24L01_transmit_success(rf);
+  while(!success){
+    success = nRF24L01_transmit_success(rf);
+  }
+  if (success != 0){
+    nRF24L01_flush_transmit_message(rf);
+  }
 #if showDebugDataMain == 1
   slUART_WriteString("Send value: ");
   slUART_WriteString(req);
@@ -92,7 +98,10 @@ uint8_t stage4_sendViaRadio() {
   LED_TOG;
   return 0;
 }
+nRF24L01 *setup_rf(void);
 
+volatile bool rf_interrupt = false;
+volatile bool send_message = false;
 
 int main(void) {
   TCCR0B |= (1 << CS02) | (1 << CS00);//prescaler 1024
@@ -100,11 +109,11 @@ int main(void) {
   DDRB |= LED;
   slI2C_Init();
   slUART_SimpleTransmitInit();
-  //vw_set_ptt_inverted(1); // Required for DR3100
-  vw_setup(2000);   // Bits per sec
-  //vw_set_tx_pin(13);//PB5 set pin in VirtualWire_Config.h
-  vw_rx_start();
+  
+  uint8_t to_address[5] = { 0x01, 0x01, 0x01, 0x01, 0x01 };
+  bool on = false;
   sei();
+  nRF24L01 *rf = setup_rf();
 #if showDebugDataMain == 1
   slUART_WriteString("Start.\r\n");
 #endif
@@ -119,20 +128,6 @@ int main(void) {
 #endif
   }
   while (1) {
-    if (vw_get_message(buf, &buflen)) {
-#if showDebugDataMain == 1
-      slUART_WriteString("jest message\r\n");
-#endif
-      int i;
-      for (i = 0; i < buflen; i++) {
-        wiad[i] = buf[i];
-      }
-#if showDebugDataMain == 1
-      slUART_WriteString("Read value: ");
-      slUART_WriteString(wiad);
-      slUART_WriteString("\r\n");
-#endif
-    }
     switch (stage) {
       case 1:
         if (stage1_SetBME280Mode()) {
@@ -156,7 +151,7 @@ int main(void) {
         stage = 4;
         break;
       case 4:
-        if (stage4_sendViaRadio()) {
+        if (stage4_sendVianRF24L01(rf, to_address)) {
           stage = 0;
           return 1;
         }
@@ -176,4 +171,24 @@ ISR(TIMER0_OVF_vect) {
       stage = 1;
     }
   }
+}
+
+
+nRF24L01 *setup_rf(void) {
+    nRF24L01 *rf = nRF24L01_init();
+    rf->ss.port = &PORTB;
+    rf->ss.pin = PB2;
+    rf->ce.port = &PORTB;
+    rf->ce.pin = PB1;
+    rf->sck.port = &PORTB;
+    rf->sck.pin = PB5;
+    rf->mosi.port = &PORTB;
+    rf->mosi.pin = PB3;
+    rf->miso.port = &PORTB;
+    rf->miso.pin = PB4;
+    // interrupt on falling edge of INT0 (PD2)
+    EICRA |= _BV(ISC01);
+    EIMSK |= _BV(INT0);
+    nRF24L01_begin(rf);
+    return rf;
 }
