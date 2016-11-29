@@ -100,7 +100,7 @@ int main(void) {
   DDRB |= LED;
   slI2C_Init();
   slUART_SimpleTransmitInit();
-  vw_set_ptt_inverted(1); // Required for DR3100
+  //vw_set_ptt_inverted(1); // Required for DR3100
   vw_setup(2000);   // Bits per sec
   //vw_set_tx_pin(13);//PB5 set pin in VirtualWire_Config.h
   vw_rx_start();
