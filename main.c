@@ -119,20 +119,20 @@ int main(void) {
 #endif
   }
   while (1) {
-    if (vw_get_message(buf, &buflen)) {
-#if showDebugDataMain == 1
-      slUART_WriteString("jest message\r\n");
-#endif
-      int i;
-      for (i = 0; i < buflen; i++) {
-        wiad[i] = buf[i];
-      }
-#if showDebugDataMain == 1
-      slUART_WriteString("Read value: ");
-      slUART_WriteString(wiad);
-      slUART_WriteString("\r\n");
-#endif
-    }
+//     if (vw_get_message(buf, &buflen)) {
+// #if showDebugDataMain == 1
+//       slUART_WriteString("jest message\r\n");
+// #endif
+//       int i;
+//       for (i = 0; i < buflen; i++) {
+//         wiad[i] = buf[i];
+//       }
+// #if showDebugDataMain == 1
+//       slUART_WriteString("Read value: ");
+//       slUART_WriteString(wiad);
+//       slUART_WriteString("\r\n");
+// #endif
+//     }
     switch (stage) {
       case 1:
         if (stage1_SetBME280Mode()) {
