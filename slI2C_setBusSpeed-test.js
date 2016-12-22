@@ -13,3 +13,4 @@ console.log('prescaler: ', prescaler);
 //TWBR = speed;
 
 console.log('speed2: ', ((F_CPU / I2CBUSCLOCK) - 16) / 2);
+
