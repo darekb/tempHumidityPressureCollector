@@ -15,16 +15,21 @@
 #include "slI2C.h"
 
 #if showDebugDataMain == 1
-
 #include "slUart.h"
-
 #endif
 
 #include "BME280.h"
 #include "VirtualWire.h"
 
-//TODO średnia wleczone dla pomiarów
-//TODO implementacja RF module 433.92MHz
+//TODO 1. wgrać do innego uC wsad z nasłuchiwaniem RF module 433.92MHz
+//TODO 2. wywalać do uart surowe wartości
+//TODO 3. wymienić uC na ten zaprogramowany przezemnie
+//TODO 4. merge to master (WIN!!!)
+
+//deploy checklist
+//1. ustawić showDebugDataMain na 0
+//2. ustawić w bibliotekach logowanie na 0
+//3. usunąć z CMakeLists.txt slUart.c
 
 #define LED (1 << PB0)
 #define LED_TOG PORTB ^= LED
@@ -97,14 +102,19 @@ uint8_t stage4_sendViaRadio() {
 int main(void) {
   TCCR0B |= (1 << CS02) | (1 << CS00);//prescaler 1024
   TIMSK0 |= (1 << TOIE0);//przerwanie przy przepłnieniu timera0
+
   DDRB |= LED;
+
   slI2C_Init();
+
+#if showDebugDataMain == 1
   slUART_SimpleTransmitInit();
-  //vw_set_ptt_inverted(1); // Required for DR3100
+#endif
+
   vw_setup(2000);   // Bits per sec
-  //vw_set_tx_pin(13);//PB5 set pin in VirtualWire_Config.h
-  vw_rx_start();
+  //vw_rx_start();//przestować czy będzie działać
   sei();
+
 #if showDebugDataMain == 1
   slUART_WriteString("Start.\r\n");
 #endif
@@ -119,20 +129,6 @@ int main(void) {
 #endif
   }
   while (1) {
-//     if (vw_get_message(buf, &buflen)) {
-// #if showDebugDataMain == 1
-//       slUART_WriteString("jest message\r\n");
-// #endif
-//       int i;
-//       for (i = 0; i < buflen; i++) {
-//         wiad[i] = buf[i];
-//       }
-// #if showDebugDataMain == 1
-//       slUART_WriteString("Read value: ");
-//       slUART_WriteString(wiad);
-//       slUART_WriteString("\r\n");
-// #endif
-//     }
     switch (stage) {
       case 1:
         if (stage1_SetBME280Mode()) {
@@ -170,7 +166,7 @@ int main(void) {
 ISR(TIMER0_OVF_vect) {
   //co 0.01632sek.
   counter = counter + 1;
-  if (counter == 366) {//5,97312 sek
+  if (counter == 612) {//9.98784 sek
     counter = 0;
     if(stage == 0){
       stage = 1;
