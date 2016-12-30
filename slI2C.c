@@ -111,7 +111,7 @@ uint8_t slI2C_Stop() {
   showErrors("slI2C_Stop");
 #endif
   return I2C_Error;
-};
+}
 
 uint8_t slI2C_WriteByte(uint8_t byte) {
   uint8_t twst;

@@ -79,7 +79,8 @@ uint8_t stage3_prepareDataToSend() {
   //pressure
   toStringToSend(pressure, req);
   //vcc
-  toStringToSend(0.0, req);
+  //float vcc = 0.0;
+  //toStringToSend(vcc, req);
   //sensor nr an char endig transmission
   strcat(req, "|11|z");
   return 0;
@@ -87,6 +88,7 @@ uint8_t stage3_prepareDataToSend() {
 
 uint8_t stage4_sendViaRadio() {
   LED_TOG;
+  //strcpy(req, "|25.89|43.58|102410.00|z");
   vw_send((uint8_t *) req, strlen(req));
   vw_wait_tx(); // Wait until the whole message is gone
 #if showDebugDataMain == 1
@@ -112,7 +114,7 @@ int main(void) {
 #endif
 
   vw_setup(2000);   // Bits per sec
-  //vw_rx_start();//przestować czy będzie działać
+  //vw_tx_start();//przestować czy będzie działać
   sei();
 
 #if showDebugDataMain == 1

@@ -27,7 +27,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #include <string.h>
 #include <stdio.h>
 #include "slI2C.h"
+#if showDebugDataBME280 == 1
 #include "slUart.h"
+#endif
 #include "BME280.h"
 
 
@@ -119,6 +121,7 @@ uint8_t I2C_ReadData(uint8_t device_addr, uint8_t register_addr, uint8_t *data, 
     }              //Stop
     return 0;
   }
+  return 0;
 }
 
 
