@@ -26,8 +26,5 @@ Added VirtualWire lib from arduino
 
 ![image1](https://github.com/darekb/tempHumidityPressureCollector/blob/master/IMG_20161004_230553.jpg?raw=true)
 
-## Next step
-Test VirtualWire lib
-
 
 
