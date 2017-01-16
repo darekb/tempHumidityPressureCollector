@@ -27,10 +27,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
 #include <string.h>
 #include <stdio.h>
 #include "slI2C.h"
-#if showDebugDataBME280 == 1
+#include "BME280.h"
+#if showDebugDataBME280 == 0
 #include "slUart.h"
 #endif
-#include "BME280.h"
 
 
 static struct {

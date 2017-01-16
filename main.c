@@ -9,7 +9,7 @@
 #define F_CPU 16000000UL
 #endif
 
-#define showDebugDataMain 1
+#define showDebugDataMain 0
 
 #include "main.h"
 #include "slI2C.h"
@@ -37,17 +37,14 @@
 
 float temperature, humidity, pressure;
 char req[39] = "";
-char buf[VW_MAX_MESSAGE_LEN];
-char buflen = VW_MAX_MESSAGE_LEN;
-char wiad[39] = "";
 volatile uint8_t stage = 0;
 volatile uint16_t counter = 0;
 
 void toStringToSend(float inData, char *out) {
   char bufor[10] = "";
-  strcat(out, DELIMITER);
   dtostrf((float) inData, 1, 2, bufor);
   strcat(out, bufor);
+  strcat(out, DELIMITER);
 }
 
 uint8_t stage1_SetBME280Mode() {
@@ -79,16 +76,15 @@ uint8_t stage3_prepareDataToSend() {
   //pressure
   toStringToSend(pressure, req);
   //vcc
-  //float vcc = 0.0;
-  //toStringToSend(vcc, req);
+  float vcc = 3.27;
+  toStringToSend(vcc, req);
   //sensor nr an char endig transmission
-  strcat(req, "|11|z");
+  strcat(req, "11|z");
   return 0;
 }
-
 uint8_t stage4_sendViaRadio() {
   LED_TOG;
-  //strcpy(req, "|25.89|43.58|102410.00|z");
+  //strcpy(req, "25.89|43.58|102410.00|0|z");
   vw_send((uint8_t *) req, strlen(req));
   vw_wait_tx(); // Wait until the whole message is gone
 #if showDebugDataMain == 1
@@ -133,13 +129,22 @@ int main(void) {
   while (1) {
     switch (stage) {
       case 1:
+#if showDebugDataMain == 1
+        slUART_WriteString("Stage1.\r\n");
+#endif
         if (stage1_SetBME280Mode()) {
           stage = 0;
+#if showDebugDataMain == 1
+          slUART_WriteString("Error stage 1; stage1_SetBME280Mode().\r\n");
+#endif
           return 1;
         }
         stage = 2;
         break;
       case 2:
+#if showDebugDataMain == 1
+        slUART_WriteString("Stage2.\r\n");
+#endif
         if (stage2_GetDataFromBME280()) {
           stage = 0;
           return 1;
@@ -147,6 +152,9 @@ int main(void) {
         stage = 3;
         break;
       case 3:
+#if showDebugDataMain == 1
+        slUART_WriteString("Stage3.\r\n");
+#endif
         if (stage3_prepareDataToSend()) {
           stage = 0;
           return 1;
@@ -154,6 +162,9 @@ int main(void) {
         stage = 4;
         break;
       case 4:
+#if showDebugDataMain == 1
+        slUART_WriteString("Stage4.\r\n");
+#endif
         if (stage4_sendViaRadio()) {
           stage = 0;
           return 1;
@@ -168,9 +179,15 @@ int main(void) {
 ISR(TIMER0_OVF_vect) {
   //co 0.01632sek.
   counter = counter + 1;
-  if (counter == 612) {//9.98784 sek
+  if (counter == 306) {//9.98784 sek
     counter = 0;
+#if showDebugDataMain == 1
+    slUART_WriteString("Counter tick.\r\n");
+#endif
     if(stage == 0){
+#if showDebugDataMain == 1
+      slUART_WriteString("Change stage value.\r\n");
+#endif
       stage = 1;
     }
   }

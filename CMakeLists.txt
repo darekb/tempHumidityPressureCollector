@@ -3,12 +3,17 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8.4)
 PROJECT(cmake-avr)
 
 #SET(MCU_SPEED "16000000")
-SET(F_CPU "16000000UL")
+SET(F_CPU "8000000UL")
 SET(AVR_MCU "atmega328p")
 #set(AVR_H_FUSE 0xD6)
 #set(AVR_L_FUSE 0xF7)
 set(AVR_H_FUSE 0xD9)
 set(AVR_L_FUSE 0x62)
+
+
+#set(AVR_H_FUSE 0xD9)
+#set(AVR_L_FUSE 0xF7)
+
 
 set(AVR_UPLOADTOOL avrdude)
 set(AVR_PROGRAMMER usbasp)
@@ -19,7 +24,6 @@ set(CMAKE_BUILD_TYPE Release)
 SET(SOURCE_EXE
         main.c
         slI2C.c
-        slUart.c
         BME280.c
         VirtualWire.c
         )
