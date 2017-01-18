@@ -95,6 +95,22 @@ uint8_t stage4_sendViaRadio() {
   LED_TOG;
   return 0;
 }
+uint8_t stage5_sendViaRadio() {
+  LED_TOG;
+  strcpy(req, "25.89|43.58|102410.00|3.27|11|z");
+  vw_send((uint8_t *) req, strlen(req));
+  vw_wait_tx(); // Wait until the whole message is gone
+  LED_TOG;
+  return 0;
+}
+uint8_t stage6_sendViaRadio() {
+  LED_TOG;
+  strcpy(req, "2410.00|3.27|11|z");
+  vw_send((uint8_t *) req, strlen(req));
+  vw_wait_tx(); // Wait until the whole message is gone
+  LED_TOG;
+  return 0;
+}
 
 
 int main(void) {
@@ -103,72 +119,19 @@ int main(void) {
 
   DDRB |= LED;
 
-  slI2C_Init();
-
-#if showDebugDataMain == 1
-  slUART_SimpleTransmitInit();
-#endif
-
   vw_setup(2000);   // Bits per sec
   //vw_tx_start();//przestować czy będzie działać
   sei();
 
-#if showDebugDataMain == 1
-  slUART_WriteString("Start.\r\n");
-#endif
-  if (BME280_Init(BME280_OS_T_1, BME280_OS_P_1, BME280_OS_H_1, BME280_FILTER_OFF, BME280_MODE_FORCED,
-                  BME280_TSB_1000)) {
-#if showDebugDataMain == 1
-    slUART_WriteString("BMP280 init error.\r\n");
-#endif
-  } else {
-#if showDebugDataMain == 1
-    slUART_WriteString("BMP280 init done.\r\n");
-#endif
-  }
   while (1) {
     switch (stage) {
       case 1:
-#if showDebugDataMain == 1
-        slUART_WriteString("Stage1.\r\n");
-#endif
-        if (stage1_SetBME280Mode()) {
-          stage = 0;
-#if showDebugDataMain == 1
-          slUART_WriteString("Error stage 1; stage1_SetBME280Mode().\r\n");
-#endif
-          return 1;
-        }
-        stage = 2;
+        stage5_sendViaRadio();
+        stage = 0;
+        //_delay_ms(2);
         break;
       case 2:
-#if showDebugDataMain == 1
-        slUART_WriteString("Stage2.\r\n");
-#endif
-        if (stage2_GetDataFromBME280()) {
-          stage = 0;
-          return 1;
-        }
-        stage = 3;
-        break;
-      case 3:
-#if showDebugDataMain == 1
-        slUART_WriteString("Stage3.\r\n");
-#endif
-        if (stage3_prepareDataToSend()) {
-          stage = 0;
-          return 1;
-        }
-        stage = 4;
-        break;
-      case 4:
-#if showDebugDataMain == 1
-        slUART_WriteString("Stage4.\r\n");
-#endif
-        if (stage4_sendViaRadio()) {
-          stage = 0;
-          return 1;
-        }
+        stage6_sendViaRadio();
         stage = 0;
         break;
     }
