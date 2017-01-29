@@ -110,7 +110,6 @@ int main(void) {
 #endif
 
   vw_setup(2000);   // Bits per sec
-  //vw_tx_start();//przestować czy będzie działać
   sei();
 
 #if showDebugDataMain == 1

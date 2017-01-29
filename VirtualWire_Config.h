@@ -17,11 +17,6 @@
 #define VW_TX_DDR  DDRB
 #define VW_TX_PIN  PINB5
 
-// Define the IO pin used for receiving data
-#define VW_RX_PORT  PORTB
-#define VW_RX_DDR  DDRB
-#define VW_RX_PIN  PINB1
-
 //	Define the 16 bits timer index to be used by the library (e.g. 1)
 //	The default timer configuration will use TIMSKn as interrupt mask register,
 //     OCRnA as compare register and TIMERn_COMPA_vect as interrupt vector
@@ -31,10 +26,14 @@
 
 //	Select Timer 1 as the 16 bits timer used by the library
 #define VW_TIMER_INDEX 1
+//reduce message length, saves up memory
+#define VW_MAX_MESSAGE_LEN 80
+
+
 
 //
 //	EXAMPLE: configuration suitable for At90USB162 or ATMega32U2
-//
+//.
 
 /*
 	//	Select AVR8 platform
