@@ -29,7 +29,7 @@ Working RF module 433.92MHz library (VirtualWire from arduino)
 Add function to sleeping microcontroller between measurement.
 
 
-![image1](https://github.com/darekb/tempHumidityPressureCollector/blob/master/IMG_20161004_230553.jpg?raw=true)
+![image1](https://github.com/darekb/tempHumidityPressureCollector/blob/master/board.jpg?raw=true)
 
 
 
