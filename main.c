@@ -168,7 +168,7 @@ int main(void) {
 ISR(TIMER0_OVF_vect) {
   //co 0.01632sek.
   counter = counter + 1;
-  if (counter == 612) {//9.98784 sek
+  if (counter == 1224) {//9.98784x2 sek
     counter = 0;
     if(stage == 0){
       stage = 1;
